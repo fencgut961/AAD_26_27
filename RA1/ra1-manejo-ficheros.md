@@ -58,8 +58,6 @@ graph LR
     Era2 ==> Era3
 ```
 
-[Simulador de árboles B](https://meskeia.com/simulador-arboles-b/)
-
 1. **Era de los Ficheros Planos (Flat Files):** Los datos se organizaban en registros y campos dentro de ficheros de texto o binarios sin índices globales. La manipulación era lineal y muy rígida.
 
 #### Diagrama de Registro de Longitud Fija
@@ -90,6 +88,8 @@ graph TD
 
     L2 --> Record["Registro en Disco:<br/>ID = 2 | Pedro Almodovar | CLERK | 1350.00 €"]
 ```
+[Simulador de árboles B](https://meskeia.com/simulador-arboles-b/)
+
 
 3. **Era de la Interconectividad y el Big Data:** Formatos universales legibles por humanos (CSV, XML, JSON, YAML) para APIs REST e intercambio entre sistemas heterogéneos, junto con almacenes de objetos en la nube (Amazon S3, Google Cloud Storage, Azure Blob Storage) o sistemas distribuidos como HDFS.
 
