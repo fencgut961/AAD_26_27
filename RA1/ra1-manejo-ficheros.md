@@ -78,7 +78,7 @@ graph LR
 
 2. **Era de las Bases de Datos Relacionales (RDBMS):** Sistemas como Oracle, MySQL o PostgreSQL aportaron consultas complejas (SQL), transacciones seguras (ACID) e índices B-Tree para saltos inmediatos sin recorrer todo el fichero.
 
-#### Diagrama de Búsqueda mediante Índice B-Tree
+#### Diagrama de Búsqueda mediante Índice B-Tree [Simulador de árboles B](https://meskeia.com/simulador-arboles-b/)
 ```mermaid
 graph TD
     Root["[ 4 ]"] --> Left["[ 2, 3 ]"]
@@ -88,8 +88,6 @@ graph TD
 
     L2 --> Record["Registro en Disco:<br/>ID = 2 | Pedro Almodovar | CLERK | 1350.00 €"]
 ```
-[Simulador de árboles B](https://meskeia.com/simulador-arboles-b/)
-
 
 3. **Era de la Interconectividad y el Big Data:** Formatos universales legibles por humanos (CSV, XML, JSON, YAML) para APIs REST e intercambio entre sistemas heterogéneos, junto con almacenes de objetos en la nube (Amazon S3, Google Cloud Storage, Azure Blob Storage) o sistemas distribuidos como HDFS.
 
