@@ -1,4 +1,4 @@
-# RA2: Manejo de Conectores y Acceso a Datos en Java
+# RA2. Desarrolla aplicaciones que gestionan información almacenada en bases de datos relacionales identificando y utilizando mecanismos de conexión.
 
 ---
 
