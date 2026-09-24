@@ -12,26 +12,26 @@ Un **conector** es una biblioteca de software que actúa como traductor entre la
 #### Diagrama de Arquitectura de Persistencia
 ```mermaid
 graph TD
- subgraph Aplicacion["Capa de Aplicación (Java)"]
- App["Lógica de Negocio / Servicio"]
- JDBC["API JDBC (java.sql / javax.sql)"]
- end
- 
- subgraph DriverLayer["Capa de Conectores (Drivers)"]
- DriverPg["PostgreSQL Driver (org.postgresql.Driver)"]
- DriverMy["MySQL Driver (com.mysql.cj.jdbc.Driver)"]
- end
- 
- subgraph DatabaseLayer["SGBD (Servidores de Base de Datos)"]
- PG[("PostgreSQL\nPuerto 5432")]
- MY[("MySQL\nPuerto 3306")]
- end
- 
- App --> JDBC
- JDBC -->|"Interfaces estándar"| DriverPg
- JDBC -.->|"Interfaces estándar"| DriverMy
- DriverPg -->|"Protocolo Nativo (Sockets TCP)"| PG
- DriverMy -.->|"Protocolo Nativo"| MY
+    subgraph Aplicacion["Capa de Aplicación (Java)"]
+        App["Lógica de Negocio / Servicio"]
+        JDBC["API JDBC (java.sql / javax.sql)"]
+    end
+    
+    subgraph DriverLayer["Capa de Conectores (Drivers)"]
+        DriverPg["PostgreSQL Driver (org.postgresql.Driver)"]
+        DriverMy["MySQL Driver (com.mysql.cj.jdbc.Driver)"]
+    end
+    
+    subgraph DatabaseLayer["SGBD (Servidores de Base de Datos)"]
+        PG[("PostgreSQL\nPuerto 5432")]
+        MY[("MySQL\nPuerto 3306")]
+    end
+    
+    App --> JDBC
+    JDBC -->|"Interfaces estándar"| DriverPg
+    JDBC -.->|"Interfaces estándar"| DriverMy
+    DriverPg -->|"Protocolo Nativo (Sockets TCP)"| PG
+    DriverMy -.->|"Protocolo Nativo"| MY
 ```
 
 En el ecosistema Java, la interacción con bases de datos relacionales está estandarizada a través de la **API JDBC** (`java.sql` y `javax.sql`). JDBC no es la implementación del conector en sí, sino una especificación de interfaces que los fabricantes de bases de datos implementan en sus respectivos paquetes JAR:
@@ -44,13 +44,13 @@ En el ecosistema Java, la interacción con bases de datos relacionales está est
 
 #### Ventajas e Inconvenientes del uso de Conectores
 * **Ventajas:**
- * **Estandarización y Abstracción:** Permite cambiar el motor de base de datos subyacente modificando la cadena de conexión y la dependencia, manteniendo casi intacta la API de acceso.
- * **Aprovechamiento Nativo:** Permite ejecutar características específicas del SGBD (funciones almacenadas, tipos JSONB, comandos DDL avanzados).
- * **Seguridad y Rendimiento:** Soporte para consultas parametrizadas, transporte cifrado (SSL/TLS) y comunicación eficiente con la base de datos.
-*  **Inconvenientes:**
- * **Acoplamiento de Versiones:** El driver debe estar alineado con la versión del servidor de base de datos y la versión del JDK.
- * **Gestión de Recursos:** Las conexiones sin cerrar consumen descriptores de socket y memoria en el servidor, pudiendo saturar las conexiones disponibles en el servidor SGBD.
- * **Código Repetitivo (*Boilerplate*):** La gestión pura de JDBC requiere un control exhaustivo de excepciones y recursos.
+  * **Estandarización y Abstracción:** Permite cambiar el motor de base de datos subyacente modificando la cadena de conexión y la dependencia, manteniendo casi intacta la API de acceso.
+  * **Aprovechamiento Nativo:** Permite ejecutar características específicas del SGBD (funciones almacenadas, tipos JSONB, comandos DDL avanzados).
+  * **Seguridad y Rendimiento:** Soporte para consultas parametrizadas, transporte cifrado (SSL/TLS) y comunicación eficiente con la base de datos.
+* **Inconvenientes:**
+  * **Acoplamiento de Versiones:** El driver debe estar alineado con la versión del servidor de base de datos y la versión del JDK.
+  * **Gestión de Recursos:** Las conexiones sin cerrar consumen descriptores de socket y memoria en el servidor, pudiendo saturar las conexiones disponibles en el servidor SGBD.
+  * **Código Repetitivo (*Boilerplate*):** La gestión pura de JDBC requiere un control exhaustivo de excepciones y recursos.
 
 ---
 
@@ -60,22 +60,22 @@ En arquitecturas de producción, la base de datos se ejecuta de forma independie
 #### Diagrama de Secuencia del Handshake y Sesión JDBC
 ```mermaid
 sequenceDiagram
- autonumber
- participant App as Aplicación Java
- participant Driver as Driver JDBC (PostgresqlDriver)
- participant DB as Servidor PostgreSQL (Docker)
+    autonumber
+    participant App as Aplicación Java
+    participant Driver as Driver JDBC (PostgresqlDriver)
+    participant DB as Servidor PostgreSQL (Docker)
 
- App->>Driver: Solicitud de Conexión (DriverManager/DataSource)
- Driver->>DB: Handshake TCP (Puerto 5432)
- DB-->>Driver: ACK TCP
- Driver->>DB: Autenticación (User/Password)
- DB-->>Driver: Sesión Autorizada
- Driver-->>App: Retornar Objeto Connection
+    App->>Driver: Solicitud de Conexión (DriverManager/DataSource)
+    Driver->>DB: Handshake TCP (Puerto 5432)
+    DB-->>Driver: ACK TCP
+    Driver->>DB: Autenticación (User/Password)
+    DB-->>Driver: Sesión Autorizada
+    Driver-->>App: Retornar Objeto Connection
 
- App->>DB: Ejecutar Sentencia SQL (PreparedStatement)
- DB-->>App: Retornar ResultSet / Filas Afectadas
- App->>Driver: Cerrar Conexión (conn.close())
- Driver->>DB: Cierre de Sesión TCP
+    App->>DB: Ejecutar Sentencia SQL (PreparedStatement)
+    DB-->>App: Retornar ResultSet / Filas Afectadas
+    App->>Driver: Cerrar Conexión (conn.close())
+    Driver->>DB: Cierre de Sesión TCP
 ```
 
 1. **Apertura de Socket TCP:** El driver inicia el *handshake* de red con el host y puerto especificados.
@@ -92,42 +92,39 @@ Para garantizar un entorno de desarrollo aislado, reproducible y homogéneo, la 
 #### Archivo `docker-compose.yml`
 ```yaml
 services:
- postgres:
- image: postgres:15-alpine
- container_name: aad_postgres
- restart: always
- environment:
- POSTGRES_DB: aad_db
- POSTGRES_USER: postgres
- POSTGRES_PASSWORD: 1234
- ports:
- - "5432:5432"
- volumes:
- - pgdata:/var/lib/postgresql/data
+  postgres:
+    image: postgres:15-alpine
+    container_name: aad_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: aad_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
 
 volumes:
- pgdata:
+  pgdata:
 ```
 
 #### Esquema del Entorno de Infraestructura Local
 ```mermaid
 graph TD
-    subgraph Host["Host Local (Máquina de Desarrollo)"]
-        JavaApp["Aplicación Java (IDE / JVM)"]
-        
-        subgraph DockerEngine["Docker Engine"]
-            subgraph Container["Contenedor: aad_postgres"]
-                PG["Servidor PostgreSQL (Puerto 5432)"]
-                DB[("Base de Datos: aad_db")]
-            end
-        end
-        
-        Vol[("Volumen Persistente: pgdata")]
+    subgraph HostLocal["Host Local (Máquina de Desarrollo)"]
+        App["Aplicación Java / Spring Boot"]
+        IDE["Cliente SQL / DBeaver"]
     end
 
-    JavaApp -->|"jdbc:postgresql://localhost:5432/aad_db"| PG
-    PG --> DB
-    Container --> Vol
+    subgraph Docker["Contenedor Docker (aad_postgres)"]
+        Postgres["Servidor PostgreSQL (Puerto 5432)"]
+        Volume[("Volumen Persistente (pgdata)")]
+    end
+
+    App -->|"Socket TCP (Puerto 5432)"| Postgres
+    IDE -->|"Socket TCP (Puerto 5432)"| Postgres
+    Postgres --> Volume
 ```
 
 #### Parámetros de Conexión y Cadena JDBC
@@ -159,29 +156,29 @@ El subconjunto **DDL** (*Data Definition Language*) permite crear, alterar y des
 #### Diagrama Entidad-Relación (Modelo de Dominio Académico)
 ```mermaid
 erDiagram
- ALUMNO ||--o{ MATRICULA : realiza
- MODULO ||--o{ MATRICULA : contiene
+    ALUMNO ||--o{ MATRICULA : realiza
+    MODULO ||--o{ MATRICULA : contiene
 
- ALUMNO {
- int id_alumno PK "SERIAL"
- string nif "UNIQUE"
- string nombre
- string email "UNIQUE"
- string curso
- }
+    ALUMNO {
+        int id_alumno PK "SERIAL"
+        string nif "UNIQUE"
+        string nombre
+        string email "UNIQUE"
+        string curso
+    }
 
- MODULO {
- int id_modulo PK "SERIAL"
- string codigo "UNIQUE"
- string nombre
- int horas "CHECK (>0)"
- }
+    MODULO {
+        int id_modulo PK "SERIAL"
+        string codigo "UNIQUE"
+        string nombre
+        int horas "CHECK (>0)"
+    }
 
- MATRICULA {
- int id_alumno PK,FK
- int id_modulo PK,FK
- date fecha "DEFAULT CURRENT_DATE"
- }
+    MATRICULA {
+        int id_alumno PK,FK
+        int id_modulo PK,FK
+        date fecha "DEFAULT CURRENT_DATE"
+    }
 ```
 
 #### Tipos de Datos Relevantes en PostgreSQL
@@ -196,25 +193,25 @@ erDiagram
 #### Script de Esquema Relacional (`01_schema.sql`)
 ```sql
 CREATE TABLE IF NOT EXISTS alumno (
- id_alumno SERIAL PRIMARY KEY,
- nif VARCHAR(9) UNIQUE NOT NULL,
- nombre VARCHAR(100) NOT NULL,
- email VARCHAR(100) UNIQUE NOT NULL,
- curso VARCHAR(50) NOT NULL
+    id_alumno SERIAL PRIMARY KEY,
+    nif VARCHAR(9) UNIQUE NOT NULL,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    curso VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS modulo (
- id_modulo SERIAL PRIMARY KEY,
- codigo VARCHAR(40) UNIQUE NOT NULL,
- nombre VARCHAR(100) NOT NULL,
- horas INT CHECK (horas > 0)
+    id_modulo SERIAL PRIMARY KEY,
+    codigo VARCHAR(40) UNIQUE NOT NULL,
+    nombre VARCHAR(100) NOT NULL,
+    horas INT CHECK (horas > 0)
 );
 
 CREATE TABLE IF NOT EXISTS matricula (
- id_alumno INT NOT NULL REFERENCES alumno(id_alumno) ON DELETE CASCADE,
- id_modulo INT NOT NULL REFERENCES modulo(id_modulo) ON DELETE CASCADE,
- fecha DATE DEFAULT CURRENT_DATE,
- PRIMARY KEY (id_alumno, id_modulo)
+    id_alumno INT NOT NULL REFERENCES alumno(id_alumno) ON DELETE CASCADE,
+    id_modulo INT NOT NULL REFERENCES modulo(id_modulo) ON DELETE CASCADE,
+    fecha DATE DEFAULT CURRENT_DATE,
+    PRIMARY KEY (id_alumno, id_modulo)
 );
 ```
 
@@ -242,38 +239,38 @@ INSERT INTO matricula (id_alumno, id_modulo, fecha) VALUES
 #### Esquema Gráfico de Combinación Relacional (`INNER JOIN`)
 ```mermaid
 graph LR
-    subgraph TablaAlumno["Tabla ALUMNO"]
-        A1["id_alumno: 1<br/>nombre: Laura Pérez"]
-        A2["id_alumno: 2<br/>nombre: Carlos Ruiz"]
+    subgraph ALUMNO["Tabla ALUMNO"]
+        A1["1: Laura Pérez"]
+        A2["2: Carlos Ruiz"]
     end
 
-    subgraph TablaMatricula["Tabla MATRICULA (N:M)"]
-        M1["id_alumno: 1 | id_modulo: 1"]
-        M2["id_alumno: 1 | id_modulo: 2"]
-        M3["id_alumno: 2 | id_modulo: 2"]
+    subgraph MATRICULA["Tabla MATRICULA (Intermedia N:M)"]
+        M11["Alumno 1 - Módulo 1"]
+        M12["Alumno 1 - Módulo 2"]
+        M22["Alumno 2 - Módulo 2"]
     end
 
-    subgraph TablaModulo["Tabla MODULO"]
-        MOD1["id_modulo: 1<br/>nombre: Programación"]
-        MOD2["id_modulo: 2<br/>nombre: Bases de Datos"]
+    subgraph MODULO["Tabla MODULO"]
+        MOD1["1: Programación"]
+        MOD2["2: Bases de Datos"]
     end
 
-    A1 --> M1
-    A1 --> M2
-    A2 --> M3
+    A1 --> M11
+    A1 --> M12
+    A2 --> M22
 
-    M1 --> MOD1
-    M2 --> MOD2
-    M3 --> MOD2
+    M11 --> MOD1
+    M12 --> MOD2
+    M22 --> MOD2
 ```
 
 #### Consultas Avanzadas con Combinaciones (`SELECT` + `JOIN`)
 ```sql
 SELECT 
- a.nombre AS alumno, 
- a.curso,
- m.nombre AS modulo, 
- ma.fecha
+    a.nombre AS alumno, 
+    a.curso,
+    m.nombre AS modulo, 
+    ma.fecha
 FROM matricula ma
 INNER JOIN alumno a ON ma.id_alumno = a.id_alumno
 INNER JOIN modulo m ON ma.id_modulo = m.id_modulo
@@ -298,25 +295,25 @@ Las funciones almacenadas permiten mover lógica intensiva de datos al propio mo
 #### Diagrama de Flujo de Ejecución de Función Almacenada
 ```mermaid
 graph LR
- JavaApp["Aplicación Java\n(CallableStatement)"] -->|"Envía: count_enrollments(p_student_id=1)"| PostgresEngine["Motor PostgreSQL"]
- subgraph PLpgSQL["Ejecución Interna PL/pgSQL"]
- PostgresEngine --> Query["SELECT COUNT(*)\nFROM matricula\nWHERE id_alumno = 1"]
- Query --> Result["v_total = 2"]
- end
- Result -->|"Retorna valor: 2"| JavaApp
+    JavaApp["Aplicación Java\n(CallableStatement)"] -->|"Envía: count_enrollments(p_student_id=1)"| PostgresEngine["Motor PostgreSQL"]
+    subgraph PLpgSQL["Ejecución Interna PL/pgSQL"]
+        PostgresEngine --> Query["SELECT COUNT(*)\nFROM matricula\nWHERE id_alumno = 1"]
+        Query --> Result["v_total = 2"]
+    end
+    Result -->|"Retorna valor: 2"| JavaApp
 ```
 
 ```sql
 CREATE OR REPLACE FUNCTION count_enrollments(p_student_id INT) 
 RETURNS INT AS $$
 DECLARE
- v_total INT;
+    v_total INT;
 BEGIN
- SELECT COUNT(*) INTO v_total
- FROM matricula
- WHERE id_alumno = p_student_id;
- 
- RETURN v_total;
+    SELECT COUNT(*) INTO v_total
+    FROM matricula
+    WHERE id_alumno = p_student_id;
+    
+    RETURN v_total;
 END;
 $$ LANGUAGE plpgsql;
 ```
@@ -349,11 +346,11 @@ Con las versiones modernas de Java, los DTOs y objetos de transferencia se repre
 package com.edu.aad.model;
 
 public record Student(
- Integer id,
- String nif,
- String name,
- String email,
- String curse
+    Integer id,
+    String nif,
+    String name,
+    String email,
+    String curse
 ) {}
 ```
 
@@ -361,10 +358,10 @@ public record Student(
 package com.edu.aad.model;
 
 public record Module(
- Integer id,
- String code,
- String name,
- Integer hours
+    Integer id,
+    String code,
+    String name,
+    Integer hours
 ) {}
 ```
 
@@ -374,9 +371,9 @@ package com.edu.aad.model;
 import java.time.LocalDate;
 
 public record Enrollment(
- Integer studentId,
- Integer moduleId,
- LocalDate date
+    Integer studentId,
+    Integer moduleId,
+    LocalDate date
 ) {}
 ```
 
@@ -388,11 +385,11 @@ Los **Text Blocks** (`"""`) de Java permiten escribir sentencias SQL multilínea
 #### Diagrama de Navegación del Cursor `ResultSet`
 ```mermaid
 stateDiagram-v2
-    [*] --> BeforeFirstRow: ResultSet obtenido (Cursor en posición 0)
-    BeforeFirstRow --> Row1: rs.next() => true (Devuelve Fila 1: Laura Pérez)
-    Row1 --> Row2: rs.next() => true (Devuelve Fila 2: Carlos Ruiz)
-    Row2 --> AfterLastRow: rs.next() => false (Fin de datos)
-    AfterLastRow --> [*]: Cierre de ResultSet (try-with-resources)
+    [*] --> BeforeFirstRow: rs.next() => true
+    BeforeFirstRow --> Row1: rs.next() => true (Fila 1 procesada)
+    Row1 --> Row2: rs.next() => true (Fila 2 procesada)
+    Row2 --> AfterLastRow: rs.next() => false
+    AfterLastRow --> [*]: Fin del bucle while(rs.next())
 ```
 
 ```java
@@ -407,97 +404,97 @@ import java.util.Optional;
 
 public class StudentJdbcRepository {
 
- private final DataSource dataSource;
+    private final DataSource dataSource;
 
- public StudentJdbcRepository(DataSource dataSource) {
- this.dataSource = dataSource;
- }
+    public StudentJdbcRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
 
- public Student create(Student student) {
- String sql = """
- INSERT INTO alumno (nif, nombre, email, curso)
- VALUES (?, ?, ?, ?)
- """;
+    public Student create(Student student) {
+        String sql = """
+            INSERT INTO alumno (nif, nombre, email, curso)
+            VALUES (?, ?, ?, ?)
+            """;
 
- try (Connection conn = dataSource.getConnection();
- PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
- ps.setString(1, student.nif());
- ps.setString(2, student.name());
- ps.setString(3, student.email());
- ps.setString(4, student.curse());
+            ps.setString(1, student.nif());
+            ps.setString(2, student.name());
+            ps.setString(3, student.email());
+            ps.setString(4, student.curse());
 
- ps.executeUpdate();
+            ps.executeUpdate();
 
- try (ResultSet rs = ps.getGeneratedKeys()) {
- if (rs.next()) {
- int generatedId = rs.getInt(1);
- return new Student(generatedId, student.nif(), student.name(), student.email(), student.curse());
- }
- }
- return student;
- } catch (SQLException e) {
- throw new RuntimeException("Error insertando alumno: " + student.nif(), e);
- }
- }
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    int generatedId = rs.getInt(1);
+                    return new Student(generatedId, student.nif(), student.name(), student.email(), student.curse());
+                }
+            }
+            return student;
+        } catch (SQLException e) {
+            throw new RuntimeException("Error insertando alumno: " + student.nif(), e);
+        }
+    }
 
- public Optional<Student> findById(int id) {
- String sql = """
- SELECT id_alumno, nif, nombre, email, curso
- FROM alumno
- WHERE id_alumno = ?
- """;
+    public Optional<Student> findById(int id) {
+        String sql = """
+            SELECT id_alumno, nif, nombre, email, curso
+            FROM alumno
+            WHERE id_alumno = ?
+            """;
 
- try (Connection conn = dataSource.getConnection();
- PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
- ps.setInt(1, id);
+            ps.setInt(1, id);
 
- try (ResultSet rs = ps.executeQuery()) {
- if (rs.next()) {
- Student student = new Student(
- rs.getInt("id_alumno"),
- rs.getString("nif"),
- rs.getString("nombre"),
- rs.getString("email"),
- rs.getString("curso")
- );
- return Optional.of(student);
- }
- }
- } catch (SQLException e) {
- throw new RuntimeException("Error consultando alumno con ID: " + id, e);
- }
- return Optional.empty();
- }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Student student = new Student(
+                        rs.getInt("id_alumno"),
+                        rs.getString("nif"),
+                        rs.getString("nombre"),
+                        rs.getString("email"),
+                        rs.getString("curso")
+                    );
+                    return Optional.of(student);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error consultando alumno con ID: " + id, e);
+        }
+        return Optional.empty();
+    }
 
- public List<Student> findAll() {
- String sql = """
- SELECT id_alumno, nif, nombre, email, curso
- FROM alumno
- ORDER BY nombre ASC
- """;
+    public List<Student> findAll() {
+        String sql = """
+            SELECT id_alumno, nif, nombre, email, curso
+            FROM alumno
+            ORDER BY nombre ASC
+            """;
 
- List<Student> students = new ArrayList<>();
+        List<Student> students = new ArrayList<>();
 
- try (Connection conn = dataSource.getConnection();
- PreparedStatement ps = conn.prepareStatement(sql);
- ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
 
- while (rs.next()) {
- students.add(new Student(
- rs.getInt("id_alumno"),
- rs.getString("nif"),
- rs.getString("nombre"),
- rs.getString("email"),
- rs.getString("curso")
- ));
- }
- } catch (SQLException e) {
- throw new RuntimeException("Error obteniendo lista de alumnos", e);
- }
- return students;
- }
+            while (rs.next()) {
+                students.add(new Student(
+                    rs.getInt("id_alumno"),
+                    rs.getString("nif"),
+                    rs.getString("nombre"),
+                    rs.getString("email"),
+                    rs.getString("curso")
+                ));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error obteniendo lista de alumnos", e);
+        }
+        return students;
+    }
 }
 ```
 
@@ -509,34 +506,34 @@ La **inyección SQL** ocurre cuando datos provenientes del usuario se concatenan
 #### Comparativa Visual de Mecanismo de Inyección vs. Protección
 ```mermaid
 graph TD
- subgraph Vulnerable["Inseguro (Concatenación Directa)"]
- V1["Entrada Maliciosa:\n ' OR '1'='1 "] --> V2["SQL Resultante:\n SELECT * FROM alumno WHERE nif = '' OR '1'='1'"]
- V2 --> V3["El Motor SQL evalúa la condición OR verdadera"]
- V3 --> V4[" Devolución Masiva de Datos No Autorizados"]
- end
+    subgraph Vulnerable["Inseguro (Concatenación Directa)"]
+        V1["Entrada Maliciosa:\n ' OR '1'='1 "] --> V2["SQL Resultante:\n SELECT * FROM alumno WHERE nif = '' OR '1'='1'"]
+        V2 --> V3["El Motor SQL evalúa la condición OR verdadera"]
+        V3 --> V4["⚠️ Devolución Masiva de Datos No Autorizados"]
+    end
 
- subgraph Seguro["Seguro (PreparedStatement Parametrizado)"]
- S1["Entrada Maliciosa:\n ' OR '1'='1 "] --> S2["Fase 1: Precompilación de Estructura SQL\n SELECT * FROM alumno WHERE nif = ?"]
- S2 --> S3["Fase 2: Envío de Parámetro Escapado\n Param 1 = \"' OR '1'='1\""]
- S3 --> S4[" Búsqueda literal de un NIF con esa cadena exacta (0 resultados)"]
- end
+    subgraph Seguro["Seguro (PreparedStatement Parametrizado)"]
+        S1["Entrada Maliciosa:\n ' OR '1'='1 "] --> S2["Fase 1: Precompilación de Estructura SQL\n SELECT * FROM alumno WHERE nif = ?"]
+        S2 --> S3["Fase 2: Envío de Parámetro Escapado\n Param 1 = \"' OR '1'='1\""]
+        S3 --> S4["✅ Búsqueda literal de un NIF con esa cadena exacta (0 resultados)"]
+    end
 ```
 
 * **Vulnerable (Inseguro):**
- ```java
- // ¡NUNCA HACER ESTO!
- String sql = "SELECT * FROM alumno WHERE nif = '" + inputUsuario + "'";
- Statement st = conn.createStatement();
- ResultSet rs = st.executeQuery(sql);
- ```
+  ```java
+  // ¡NUNCA HACER ESTO!
+  String sql = "SELECT * FROM alumno WHERE nif = '" + inputUsuario + "'";
+  Statement st = conn.createStatement();
+  ResultSet rs = st.executeQuery(sql);
+  ```
 
 * **Protegido con `PreparedStatement`:**
- ```java
- String sql = "SELECT * FROM alumno WHERE nif = ?";
- PreparedStatement ps = conn.prepareStatement(sql);
- ps.setString(1, inputUsuario);
- ResultSet rs = ps.executeQuery();
- ```
+  ```java
+  String sql = "SELECT * FROM alumno WHERE nif = ?";
+  PreparedStatement ps = conn.prepareStatement(sql);
+  ps.setString(1, inputUsuario);
+  ResultSet rs = ps.executeQuery();
+  ```
 
 ---
 
@@ -545,20 +542,20 @@ Para invocar la función de PostgreSQL `count_enrollments(INT)`, se utiliza la i
 
 ```java
 public int countEnrollments(int studentId) {
- String sql = "{ ? = call count_enrollments(?) }";
+    String sql = "{ ? = call count_enrollments(?) }";
 
- try (Connection conn = dataSource.getConnection();
- CallableStatement cs = conn.prepareCall(sql)) {
+    try (Connection conn = dataSource.getConnection();
+         CallableStatement cs = conn.prepareCall(sql)) {
 
- cs.registerOutParameter(1, Types.INTEGER);
- cs.setInt(2, studentId);
+        cs.registerOutParameter(1, Types.INTEGER);
+        cs.setInt(2, studentId);
 
- cs.execute();
+        cs.execute();
 
- return cs.getInt(1);
- } catch (SQLException e) {
- throw new RuntimeException("Error invocando la función count_enrollments", e);
- }
+        return cs.getInt(1);
+    } catch (SQLException e) {
+        throw new RuntimeException("Error invocando la función count_enrollments", e);
+    }
 }
 ```
 
@@ -584,17 +581,17 @@ Una **transacción** es un conjunto de operaciones DML que se ejecutan como una 
 #### Diagrama de Estados de una Transacción
 ```mermaid
 stateDiagram-v2
- [*] --> Activa: BEGIN TRANSACTION / setAutoCommit(false)
- Activa --> OperacionesDML: executeUpdate() / executeBatch()
- 
- OperacionesDML --> Error: Excepción / Error SQL
- OperacionesDML --> Exito: Todas las operaciones correctas
- 
- Error --> Rollback: conn.rollback()
- Exito --> Commit: conn.commit()
- 
- Rollback --> [*]: Base de Datos Restaurada (Estado Inicial)
- Commit --> [*]: Cambios Persistidos Permanentemente (ACID)
+    [*] --> Activa: BEGIN TRANSACTION / setAutoCommit(false)
+    Activa --> OperacionesDML: executeUpdate() / executeBatch()
+    
+    OperacionesDML --> Error: Excepción / Error SQL
+    OperacionesDML --> Exito: Todas las operaciones correctas
+    
+    Error --> Rollback: conn.rollback()
+    Exito --> Commit: conn.commit()
+    
+    Rollback --> [*]: Base de Datos Restaurada (Estado Inicial)
+    Commit --> [*]: Cambios Persistidos Permanentemente (ACID)
 ```
 
 * **Atomicidad (A):** Se ejecutan todas las operaciones o no se ejecuta ninguna.
@@ -609,48 +606,48 @@ Por defecto, las conexiones JDBC operan en modo **Auto-Commit** (`autoCommit = t
 
 ```java
 public boolean enrollStudentInModules(int studentId, List<Integer> moduleIds) {
- String sqlInsert = "INSERT INTO matricula (id_alumno, id_modulo, fecha) VALUES (?, ?, CURRENT_DATE)";
- Connection conn = null;
+    String sqlInsert = "INSERT INTO matricula (id_alumno, id_modulo, fecha) VALUES (?, ?, CURRENT_DATE)";
+    Connection conn = null;
 
- try {
- conn = dataSource.getConnection();
- // 1. Desactivar autocommit para iniciar transacción
- conn.setAutoCommit(false);
+    try {
+        conn = dataSource.getConnection();
+        // 1. Desactivar autocommit para iniciar transacción
+        conn.setAutoCommit(false);
 
- try (PreparedStatement ps = conn.prepareStatement(sqlInsert)) {
- for (Integer moduleId : moduleIds) {
- ps.setInt(1, studentId);
- ps.setInt(2, moduleId);
- ps.addBatch();
- }
- ps.executeBatch();
- }
+        try (PreparedStatement ps = conn.prepareStatement(sqlInsert)) {
+            for (Integer moduleId : moduleIds) {
+                ps.setInt(1, studentId);
+                ps.setInt(2, moduleId);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        }
 
- // 2. Confirmar cambios si no hubo errores
- conn.commit();
- return true;
+        // 2. Confirmar cambios si no hubo errores
+        conn.commit();
+        return true;
 
- } catch (SQLException e) {
- // 3. Deshacer cambios parciales ante cualquier fallo
- if (conn != null) {
- try {
- conn.rollback();
- } catch (SQLException rollbackEx) {
- System.err.println("Error ejecutando rollback: " + rollbackEx.getMessage());
- }
- }
- throw new RuntimeException("Transacción fallida al matricular al alumno " + studentId, e);
- } finally {
- // 4. Restaurar estado de conexión
- if (conn != null) {
- try {
- conn.setAutoCommit(true);
- conn.close();
- } catch (SQLException closeEx) {
- System.err.println("Error al cerrar conexión: " + closeEx.getMessage());
- }
- }
- }
+    } catch (SQLException e) {
+        // 3. Deshacer cambios parciales ante cualquier fallo
+        if (conn != null) {
+            try {
+                conn.rollback();
+            } catch (SQLException rollbackEx) {
+                System.err.println("Error ejecutando rollback: " + rollbackEx.getMessage());
+            }
+        }
+        throw new RuntimeException("Transacción fallida al matricular al alumno " + studentId, e);
+    } finally {
+        // 4. Restaurar estado de conexión
+        if (conn != null) {
+            try {
+                conn.setAutoCommit(true);
+                conn.close();
+            } catch (SQLException closeEx) {
+                System.err.println("Error al cerrar conexión: " + closeEx.getMessage());
+            }
+        }
+    }
 }
 ```
 
@@ -674,31 +671,31 @@ public boolean enrollStudentInModules(int studentId, List<Integer> moduleIds) {
 
 ```mermaid
 graph TD
-    DBMD["DatabaseMetaData (Metadatos del SGBD)"]
-    DBMD --> P1["getDatabaseProductName()<br/>➔ 'PostgreSQL'"]
-    DBMD --> P2["getDatabaseProductVersion()<br/>➔ '15.4'"]
-    DBMD --> P3["getDriverName()<br/>➔ 'PostgreSQL JDBC Driver'"]
-    DBMD --> P4["getTables(catalog, schema, pattern, types)<br/>➔ ResultSet con Catálogo de Tablas"]
+    Meta["DatabaseMetaData"]
+    Meta --> P1["getDatabaseProductName() ➜ 'PostgreSQL'"]
+    Meta --> P2["getDatabaseProductVersion() ➜ '15.x'"]
+    Meta --> P3["getDriverName() ➜ 'PostgreSQL JDBC Driver'"]
+    Meta --> P4["getTables(...) ➜ ResultSet con catálogo de tablas"]
 ```
 
 ```java
 public void printDatabaseInfo(DataSource dataSource) {
- try (Connection conn = dataSource.getConnection()) {
- DatabaseMetaData metaData = conn.getMetaData();
+    try (Connection conn = dataSource.getConnection()) {
+        DatabaseMetaData metaData = conn.getMetaData();
 
- System.out.println("SGBD: " + metaData.getDatabaseProductName());
- System.out.println("Versión SGBD: " + metaData.getDatabaseProductVersion());
- System.out.println("Driver JDBC: " + metaData.getDriverName());
+        System.out.println("SGBD: " + metaData.getDatabaseProductName());
+        System.out.println("Versión SGBD: " + metaData.getDatabaseProductVersion());
+        System.out.println("Driver JDBC: " + metaData.getDriverName());
 
- try (ResultSet tables = metaData.getTables(null, "public", "%", new String[]{"TABLE"})) {
- while (tables.next()) {
- String tableName = tables.getString("TABLE_NAME");
- System.out.println("Tabla detectada: " + tableName);
- }
- }
- } catch (SQLException e) {
- System.err.println("Error al consultar metadatos: " + e.getMessage());
- }
+        try (ResultSet tables = metaData.getTables(null, "public", "%", new String[]{"TABLE"})) {
+            while (tables.next()) {
+                String tableName = tables.getString("TABLE_NAME");
+                System.out.println("Tabla detectada: " + tableName);
+            }
+        }
+    } catch (SQLException e) {
+        System.err.println("Error al consultar metadatos: " + e.getMessage());
+    }
 }
 ```
 
@@ -708,34 +705,34 @@ public void printDatabaseInfo(DataSource dataSource) {
 
 ```mermaid
 graph TD
-    RSMD["ResultSetMetaData (Metadatos del ResultSet)"]
-    RSMD --> M1["getColumnCount()<br/>➔ Número total de columnas (ej. 4)"]
-    RSMD --> M2["getColumnName(i)<br/>➔ Nombre de la columna (ej. 'id_alumno')"]
-    RSMD --> M3["getColumnTypeName(i)<br/>➔ Tipo de dato SQL (ej. 'SERIAL / INT4')"]
-    RSMD --> M4["isNullable(i)<br/>➔ Permite nulos (columnNoNulls / columnNullable)"]
+    RSMeta["ResultSetMetaData"]
+    RSMeta --> C1["getColumnCount() ➜ Total columnas (ej. 4)"]
+    RSMeta --> C2["getColumnName(i) ➜ Nombre (ej. 'id_alumno')"]
+    RSMeta --> C3["getColumnTypeName(i) ➜ Tipo (ej. 'INT4 / VARCHAR')"]
+    RSMeta --> C4["isNullable(i) ➜ Nulabilidad"]
 ```
 
 ```java
 public void inspectQueryResult(DataSource dataSource, String sql) {
- try (Connection conn = dataSource.getConnection();
- PreparedStatement ps = conn.prepareStatement(sql);
- ResultSet rs = ps.executeQuery()) {
+    try (Connection conn = dataSource.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
 
- ResultSetMetaData rsMeta = rs.getMetaData();
- int columnCount = rsMeta.getColumnCount();
+        ResultSetMetaData rsMeta = rs.getMetaData();
+        int columnCount = rsMeta.getColumnCount();
 
- System.out.println("Número total de columnas: " + columnCount);
- for (int i = 1; i <= columnCount; i++) {
- System.out.printf("Columna %d: %s (%s, Nulable: %s)%n",
- i,
- rsMeta.getColumnName(i),
- rsMeta.getColumnTypeName(i),
- rsMeta.isNullable(i) == ResultSetMetaData.columnNullable ? "SÍ" : "NO"
- );
- }
- } catch (SQLException e) {
- System.err.println("Error al inspeccionar el ResultSet: " + e.getMessage());
- }
+        System.out.println("Número total de columnas: " + columnCount);
+        for (int i = 1; i <= columnCount; i++) {
+            System.out.printf("Columna %d: %s (%s, Nulable: %s)%n",
+                i,
+                rsMeta.getColumnName(i),
+                rsMeta.getColumnTypeName(i),
+                rsMeta.isNullable(i) == ResultSetMetaData.columnNullable ? "SÍ" : "NO"
+            );
+        }
+    } catch (SQLException e) {
+        System.err.println("Error al inspeccionar el ResultSet: " + e.getMessage());
+    }
 }
 ```
 
@@ -758,51 +755,51 @@ public void inspectQueryResult(DataSource dataSource, String sql) {
 #### Diagrama de Arquitectura de Spring JDBC
 ```mermaid
 graph TD
- subgraph SpringApp["Aplicación Spring Boot"]
- Service["Servicio (@Service / @Transactional)"]
- Repo["Repositorio (@Repository)"]
- Template["JdbcTemplate / NamedParameterJdbcTemplate"]
- end
+    subgraph SpringApp["Aplicación Spring Boot"]
+        Service["Servicio (@Service / @Transactional)"]
+        Repo["Repositorio (@Repository)"]
+        Template["JdbcTemplate / NamedParameterJdbcTemplate"]
+    end
 
- subgraph SpringInfra["Infraestructura Spring JDBC"]
- DS["DataSource (Conexión Directa JDBC)"]
- Translator["SQLErrorCodeSQLExceptionTranslator\n(Convierte SQLException -> DataAccessException)"]
- end
+    subgraph SpringInfra["Infraestructura Spring JDBC"]
+        DS["DataSource (Conexión Directa JDBC)"]
+        Translator["SQLErrorCodeSQLExceptionTranslator\n(Convierte SQLException -> DataAccessException)"]
+    end
 
- subgraph BD["Base de Datos"]
- Postgres[("PostgreSQL")]
- end
+    subgraph BD["Base de Datos"]
+        Postgres[("PostgreSQL")]
+    end
 
- Service --> Repo
- Repo --> Template
- Template --> Translator
- Template --> DS
- DS -->|"Conexión JDBC (Driver)"| Postgres
+    Service --> Repo
+    Repo --> Template
+    Template --> Translator
+    Template --> DS
+    DS -->|"Conexión JDBC (Driver)"| Postgres
 ```
 
 #### Configuración de Dependencias (`pom.xml`)
 ```xml
 <dependencies>
- <dependency>
- <groupId>org.springframework.boot</groupId>
- <artifactId>spring-boot-starter-jdbc</artifactId>
- </dependency>
- <dependency>
- <groupId>org.postgresql</groupId>
- <artifactId>postgresql</artifactId>
- <scope>runtime</scope>
- </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <scope>runtime</scope>
+    </dependency>
 </dependencies>
 ```
 
 #### Configuración en `application.yml`
 ```yaml
 spring:
- datasource:
- url: jdbc:postgresql://localhost:5432/aad_db
- username: postgres
- password: 1234
- driver-class-name: org.postgresql.Driver
+  datasource:
+    url: jdbc:postgresql://localhost:5432/aad_db
+    username: postgres
+    password: 1234
+    driver-class-name: org.postgresql.Driver
 ```
 
 ---
@@ -812,22 +809,20 @@ spring:
 #### Esquema de Transformación en Mapeo de Filas
 ```mermaid
 graph LR
-    subgraph SQLResult["Fila SQL (ResultSet)"]
-        R1["id_alumno: 1"]
-        R2["nombre: Laura Pérez"]
-        R3["curso: DAM"]
+    subgraph SQL["Fila SQL (ResultSet)"]
+        F1["id_alumno: 1<br>nombre: Laura Pérez<br>curso: DAM"]
     end
 
-    subgraph LambdaMapper["Expresión Lambda RowMapper"]
-        L1["(rs, rowNum) -> new Student(<br/>rs.getInt('id_alumno'),<br/>rs.getString('nombre'),<br/>rs.getString('curso')<br/>)"]
+    subgraph Lambda["Expresión Lambda RowMapper"]
+        L1["(rs, rowNum) -> new Student(<br>rs.getInt('id_alumno'),<br>rs.getString('nombre'),<br>rs.getString('curso')<br>)"]
     end
 
-    subgraph JavaObj["Objeto Java (Record)"]
-        J1["Student[<br/>id = 1,<br/>name = 'Laura Pérez',<br/>curse = 'DAM'<br/>]"]
+    subgraph Java["Objeto Java (Record)"]
+        J1["Student[id=1, name='Laura Pérez', curse='DAM']"]
     end
 
-    SQLResult --> LambdaMapper
-    LambdaMapper --> JavaObj
+    F1 --> L1
+    L1 --> J1
 ```
 
 ```java
@@ -844,41 +839,41 @@ import java.util.Optional;
 @Repository
 public class StudentSpringRepository {
 
- private final JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
- public StudentSpringRepository(JdbcTemplate jdbcTemplate) {
- this.jdbcTemplate = jdbcTemplate;
- }
+    public StudentSpringRepository(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
- private final RowMapper<Student> studentRowMapper = (rs, rowNum) -> new Student(
- rs.getInt("id_alumno"),
- rs.getString("nif"),
- rs.getString("nombre"),
- rs.getString("email"),
- rs.getString("curso")
- );
+    private final RowMapper<Student> studentRowMapper = (rs, rowNum) -> new Student(
+        rs.getInt("id_alumno"),
+        rs.getString("nif"),
+        rs.getString("nombre"),
+        rs.getString("email"),
+        rs.getString("curso")
+    );
 
- public List<Student> findAll() {
- String sql = "SELECT id_alumno, nif, nombre, email, curso FROM alumno ORDER BY nombre ASC";
- return jdbcTemplate.query(sql, studentRowMapper);
- }
+    public List<Student> findAll() {
+        String sql = "SELECT id_alumno, nif, nombre, email, curso FROM alumno ORDER BY nombre ASC";
+        return jdbcTemplate.query(sql, studentRowMapper);
+    }
 
- public Optional<Student> findById(int id) {
- String sql = "SELECT id_alumno, nif, nombre, email, curso FROM alumno WHERE id_alumno = ?";
- return jdbcTemplate.query(sql, studentRowMapper, id)
- .stream()
- .findFirst();
- }
+    public Optional<Student> findById(int id) {
+        String sql = "SELECT id_alumno, nif, nombre, email, curso FROM alumno WHERE id_alumno = ?";
+        return jdbcTemplate.query(sql, studentRowMapper, id)
+            .stream()
+            .findFirst();
+    }
 
- public int update(Student student) {
- String sql = "UPDATE alumno SET nombre = ?, email = ?, curso = ? WHERE id_alumno = ?";
- return jdbcTemplate.update(sql, student.name(), student.email(), student.curse(), student.id());
- }
+    public int update(Student student) {
+        String sql = "UPDATE alumno SET nombre = ?, email = ?, curso = ? WHERE id_alumno = ?";
+        return jdbcTemplate.update(sql, student.name(), student.email(), student.curse(), student.id());
+    }
 
- public int deleteById(int id) {
- String sql = "DELETE FROM alumno WHERE id_alumno = ?";
- return jdbcTemplate.update(sql, id);
- }
+    public int deleteById(int id) {
+        String sql = "DELETE FROM alumno WHERE id_alumno = ?";
+        return jdbcTemplate.update(sql, id);
+    }
 }
 ```
 
@@ -897,26 +892,26 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class StudentNamedRepository {
 
- private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
- public StudentNamedRepository(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
- this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
- }
+    public StudentNamedRepository(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
+    }
 
- public int insert(Student student) {
- String sql = """
- INSERT INTO alumno (nif, nombre, email, curso)
- VALUES (:nif, :nombre, :email, :curso)
- """;
+    public int insert(Student student) {
+        String sql = """
+            INSERT INTO alumno (nif, nombre, email, curso)
+            VALUES (:nif, :nombre, :email, :curso)
+            """;
 
- MapSqlParameterSource params = new MapSqlParameterSource()
- .addValue("nif", student.nif())
- .addValue("nombre", student.name())
- .addValue("email", student.email())
- .addValue("curso", student.curse());
+        MapSqlParameterSource params = new MapSqlParameterSource()
+            .addValue("nif", student.nif())
+            .addValue("nombre", student.name())
+            .addValue("email", student.email())
+            .addValue("curso", student.curse());
 
- return namedParameterJdbcTemplate.update(sql, params);
- }
+        return namedParameterJdbcTemplate.update(sql, params);
+    }
 }
 ```
 
@@ -935,20 +930,20 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class ProcedureRepository {
 
- private final SimpleJdbcCall countEnrollmentsCall;
+    private final SimpleJdbcCall countEnrollmentsCall;
 
- public ProcedureRepository(JdbcTemplate jdbcTemplate) {
- this.countEnrollmentsCall = new SimpleJdbcCall(jdbcTemplate)
- .withFunctionName("count_enrollments");
- }
+    public ProcedureRepository(JdbcTemplate jdbcTemplate) {
+        this.countEnrollmentsCall = new SimpleJdbcCall(jdbcTemplate)
+            .withFunctionName("count_enrollments");
+    }
 
- public int countEnrollments(int studentId) {
- MapSqlParameterSource inParams = new MapSqlParameterSource()
- .addValue("p_student_id", studentId);
+    public int countEnrollments(int studentId) {
+        MapSqlParameterSource inParams = new MapSqlParameterSource()
+            .addValue("p_student_id", studentId);
 
- Number result = countEnrollmentsCall.executeFunction(Number.class, inParams);
- return result != null ? result.intValue() : 0;
- }
+        Number result = countEnrollmentsCall.executeFunction(Number.class, inParams);
+        return result != null ? result.intValue() : 0;
+    }
 }
 ```
 
@@ -959,30 +954,30 @@ public class ProcedureRepository {
 #### Diagrama del Proxy AOP de Intercepción Transaccional
 ```mermaid
 sequenceDiagram
- autonumber
- participant Client as Cliente / Controlador
- participant Proxy as Proxy AOP (@Transactional)
- participant TM as TransactionManager
- participant Service as EnrollmentService
- participant DB as PostgreSQL
+    autonumber
+    participant Client as Cliente / Controlador
+    participant Proxy as Proxy AOP (@Transactional)
+    participant TM as TransactionManager
+    participant Service as EnrollmentService
+    participant DB as PostgreSQL
 
- Client->>Proxy: enrollStudentInModules(...)
- Proxy->>TM: Obtener / Iniciar Transacción
- TM->>DB: BEGIN
- 
- Proxy->>Service: Invocación del método real
- 
- alt Ejecución Correcta
- Service-->>Proxy: Método finalizado con éxito
- Proxy->>TM: Commit
- TM->>DB: COMMIT
- Proxy-->>Client: Retorno OK
- else Excepción Lanzada (RuntimeException)
- Service-->>Proxy: Lanza DataAccessException
- Proxy->>TM: Rollback
- TM->>DB: ROLLBACK
- Proxy-->>Client: Propaga Excepción Traducida
- end
+    Client->>Proxy: enrollStudentInModules(...)
+    Proxy->>TM: Obtener / Iniciar Transacción
+    TM->>DB: BEGIN
+    
+    Proxy->>Service: Invocación del método real
+    
+    alt Ejecución Correcta
+        Service-->>Proxy: Método finalizado con éxito
+        Proxy->>TM: Commit
+        TM->>DB: COMMIT
+        Proxy-->>Client: Retorno OK
+    else Excepción Lanzada (RuntimeException)
+        Service-->>Proxy: Lanza DataAccessException
+        Proxy->>TM: Rollback
+        TM->>DB: ROLLBACK
+        Proxy-->>Client: Propaga Excepción Traducida
+    end
 ```
 
 ```java
@@ -997,20 +992,20 @@ import java.util.List;
 @Service
 public class EnrollmentService {
 
- private final JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
- public EnrollmentService(JdbcTemplate jdbcTemplate) {
- this.jdbcTemplate = jdbcTemplate;
- }
+    public EnrollmentService(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
- @Transactional
- public void enrollStudentInModules(int studentId, List<Integer> moduleIds) {
- String sql = "INSERT INTO matricula (id_alumno, id_modulo, fecha) VALUES (?, ?, CURRENT_DATE)";
+    @Transactional
+    public void enrollStudentInModules(int studentId, List<Integer> moduleIds) {
+        String sql = "INSERT INTO matricula (id_alumno, id_modulo, fecha) VALUES (?, ?, CURRENT_DATE)";
 
- for (Integer moduleId : moduleIds) {
- jdbcTemplate.update(sql, studentId, moduleId);
- }
- }
+        for (Integer moduleId : moduleIds) {
+            jdbcTemplate.update(sql, studentId, moduleId);
+        }
+    }
 }
 ```
 
