@@ -886,7 +886,7 @@ sequenceDiagram
 ### 7.3 Actividad Práctica de Aula: Cifrado y Descifrado Asimétrico en Parejas
 
 #### Herramientas Necesarias:
-* **Kleopatra Neo / OpenPGP** (disponible en `https://kleopatra.app/`) o cliente de línea de comandos `gpg`.
+* **Kleopatra Neo / OpenPGP** (disponible en [Kleopatra](https://kleopatra.app/)) o cliente de línea de comandos `gpg`.
 
 #### Diagrama de Flujo del Taller Práctico en Parejas
 ```mermaid
