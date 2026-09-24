@@ -116,7 +116,7 @@ volumes:
 |                                                                         |
 |  +---------------------------+             +--------------------------+ |
 |  | Aplicación Spring Boot    |             | Contenedor Docker        | |
-|  | (JVM - Java)        |             | (aad_postgres)           | |
+|  | (JVM - Java)              |             | (aad_postgres)           | |
 |  |                           |             |                          | |
 |  | URL JDBC:                 |  TCP:5432   | +----------------------+ | |
 |  | jdbc:postgresql://        |  ==========>| | Servidor PostgreSQL  | | |
