@@ -22,7 +22,7 @@ Este repositorio organiza el trabajo del módulo siguiendo los **Resultados de A
 
 ---
 
-### [RA2. Desarrolla aplicaciones que gestionan información almacenada en bases de datos relacionales identificando y utilizando mecanismos de conexión.](https://github.com/fencgut961/AAD_26_27/blob/main/RA2/ra2_manejor_conectores.md)
+### [RA2. Desarrolla aplicaciones que gestionan información almacenada en bases de datos relacionales identificando y utilizando mecanismos de conexión.](https://github.com/fencgut961/AAD_26_27/blob/main/RA2/ra2-manejor-conectores.md)
 
 - **CEv a.** Se han valorado las ventajas e inconvenientes de utilizar conectores.
 - **CEv b.** Se han utilizado gestores de bases de datos embebidos e independientes.
