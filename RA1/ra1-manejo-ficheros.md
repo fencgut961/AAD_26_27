@@ -58,6 +58,8 @@ graph LR
     Era2 ==> Era3
 ```
 
+[Simulador de árboles B](https://meskeia.com/simulador-arboles-b/)
+
 1. **Era de los Ficheros Planos (Flat Files):** Los datos se organizaban en registros y campos dentro de ficheros de texto o binarios sin índices globales. La manipulación era lineal y muy rígida.
 
 #### Diagrama de Registro de Longitud Fija
