@@ -46,10 +46,10 @@ En el ecosistema Java, la interacción con bases de datos relacionales está est
 * **Ventajas:**
   * **Estandarización y Abstracción:** Permite cambiar el motor de base de datos subyacente modificando la cadena de conexión y la dependencia, manteniendo casi intacta la API de acceso.
   * **Aprovechamiento Nativo:** Permite ejecutar características específicas del SGBD (funciones almacenadas, tipos JSONB, comandos DDL avanzados).
-  * **Seguridad y Rendimiento:** Soporte para consultas parametrizadas, transporte cifrado (SSL/TLS) y compatibilidad con agrupamiento de conexiones (*Connection Pooling*).
+  * **Seguridad y Rendimiento:** Soporte para consultas parametrizadas, transporte cifrado (SSL/TLS) y comunicación eficiente con la base de datos.
 * **Inconvenientes:**
   * **Acoplamiento de Versiones:** El driver debe estar alineado con la versión del servidor de base de datos y la versión del JDK.
-  * **Gestión de Recursos:** Las conexiones sin cerrar consumen descriptores de socket y memoria en el servidor, pudiendo saturar el pool.
+  * **Gestión de Recursos:** Las conexiones sin cerrar consumen descriptores de socket y memoria en el servidor, pudiendo saturar las conexiones disponibles en el servidor SGBD.
   * **Código Repetitivo (*Boilerplate*):** La gestión pura de JDBC requiere un control exhaustivo de excepciones y recursos.
 
 ---
@@ -62,26 +62,20 @@ En arquitecturas de producción, la base de datos se ejecuta de forma independie
 sequenceDiagram
     autonumber
     participant App as Aplicación Java
-    participant Driver as Driver JDBC
-    participant Pool as Pool (HikariCP)
-    participant DB as PostgreSQL (Docker)
+    participant Driver as Driver JDBC (PostgresqlDriver)
+    participant DB as Servidor PostgreSQL (Docker)
 
-    App->>Pool: Solicitar Conexión
-    alt Conexión en Pool
-        Pool-->>App: Entregar Conexión Existente
-    else Crear Nueva Conexión
-        Pool->>Driver: Crear Connection
-        Driver->>DB: Handshake TCP (Puerto 5432)
-        DB-->>Driver: ACK TCP
-        Driver->>DB: Autenticación (User/Password)
-        DB-->>Driver: Sesión Autorizada
-        Driver-->>Pool: Objeto Connection
-        Pool-->>App: Entregar Conexión
-    end
+    App->>Driver: Solicitud de Conexión (DriverManager/DataSource)
+    Driver->>DB: Handshake TCP (Puerto 5432)
+    DB-->>Driver: ACK TCP
+    Driver->>DB: Autenticación (User/Password)
+    DB-->>Driver: Sesión Autorizada
+    Driver-->>App: Retornar Objeto Connection
 
-    App->>DB: Ejecutar Sentencia SQL
+    App->>DB: Ejecutar Sentencia SQL (PreparedStatement)
     DB-->>App: Retornar ResultSet / Filas Afectadas
-    App->>Pool: Cerrar Conexión (Devolver al Pool)
+    App->>Driver: Cerrar Conexión (conn.close())
+    Driver->>DB: Cierre de Sesión TCP
 ```
 
 1. **Apertura de Socket TCP:** El driver inicia el *handshake* de red con el host y puerto especificados.
@@ -158,10 +152,6 @@ jdbc:postgresql://localhost:5432/aad_db?ssl=false&currentSchema=public
 3. Configurar el proyecto Java (Maven/Gradle) con la dependencia del driver JDBC de PostgreSQL.
 4. Escribir una prueba rápida de conexión en Java para verificar la comunicación sobre el puerto `5432`.
 
-#### Guía de Ejecución para el Profesor:
-* **Paso 1:** Preguntar a la clase qué temática quieren modelar hoy para la sesión en directo.
-* **Paso 2:** Crear el archivo `docker-compose.yml` y ejecutar `docker compose up -d`.
-* **Paso 3:** Abrir el IDE y configurar las credenciales (`url`, `user`, `password`) comprobando que no hay excepciones de red (`PSQLException`).
 
 ## Módulo 2: Definición y Manipulación de Datos (DDL y DML en PostgreSQL)
 
@@ -336,10 +326,6 @@ $$ LANGUAGE plpgsql;
 2. Insertar registros de prueba mediante un script `02_data.sql`.
 3. Ejecutar consultas avanzadas en directo utilizando `INNER JOIN` para unir las 3 tablas del dominio elegido.
 
-#### Guía de Ejecución para el Profesor:
-* **Paso 1:** Escribir las sentencias `CREATE TABLE` en el IDE o cliente de base de datos (DBeaver), aplicando autoincrementales (`SERIAL`).
-* **Paso 2:** Insertar datos en las entidades A y B, y posteriormente vincular sus IDs en la tabla intermedia.
-* **Paso 3:** Construir junto a los alumnos una consulta `SELECT` que recupere la información combinada de la relación $N:M$.
 
 ## Módulo 3: Acceso a Datos con JDBC Puro y Seguridad
 
@@ -585,10 +571,6 @@ public int countEnrollments(int studentId) {
 3. Utilizar **`Text Blocks`** (`"""`) para escribir sentencias SQL multilínea limpias.
 4. Aplicar consultas parametrizadas con `PreparedStatement` para demostrar la prevención de SQL Injection.
 
-#### Guía de Ejecución para el Profesor:
-* **Paso 1:** Crear los `record` Java correspondientes a las entidades del ejemplo elegido.
-* **Paso 2:** Escribir el método de inserción recuperando claves generadas (`getGeneratedKeys`).
-* **Paso 3:** Implementar la lectura mapeando el `ResultSet` de forma manual dentro de un bloque `try-with-resources`.
 
 ## Módulo 4: Gestión Transaccional e Integridad de Datos (ACID)
 
@@ -681,10 +663,6 @@ public boolean enrollStudentInModules(int studentId, List<Integer> moduleIds) {
 3. Provocar un error intencionado a mitad de la operación para visualizar el comportamiento de `conn.rollback()`.
 4. Ejecutar el flujo correcto y confirmar con `conn.commit()`.
 
-#### Guía de Ejecución para el Profesor:
-* **Paso 1:** Codificar el bloque de inserción masiva o múltiple.
-* **Paso 2:** Introducir un valor nulo o restricción violada en la última inserción para forzar una `SQLException`.
-* **Paso 3:** Mostrar a los alumnos cómo la base de datos no guarda ningún cambio parcial gracias al `rollback()`.
 
 ## Módulo 5: Inspección Dinámica mediante Metadatos
 
@@ -766,13 +744,10 @@ public void inspectQueryResult(DataSource dataSource, String sql) {
 1. Utilizar `DatabaseMetaData` para imprimir en consola las tablas y claves primarias del dominio creado.
 2. Utilizar `ResultSetMetaData` para crear un método genérico que imprima el nombre y tipo de dato de cualquier consulta SQL introducida por teclado.
 
-#### Guía de Ejecución para el Profesor:
-* **Paso 1:** Extraer los metadatos de la conexión activa con `conn.getMetaData()`.
-* **Paso 2:** Iterar sobre el `ResultSetMetaData` de una consulta sobre la tabla intermedia para mostrar la estructura interna en la terminal.
 
 ## Módulo 6: Persistencia Moderna con Spring JDBC (`JdbcTemplate`)
 
-### 6.1 Ventajas de Spring JDBC y Pool HikariCP
+### 6.1 Ventajas de Spring JDBC
 
 #### Diagrama de Arquitectura de Spring JDBC
 ```mermaid
@@ -784,8 +759,8 @@ graph TD
     end
 
     subgraph SpringInfra["Infraestructura Spring JDBC"]
+        DS["DataSource (Conexión Directa JDBC)"]
         Translator["SQLErrorCodeSQLExceptionTranslator\n(Convierte SQLException -> DataAccessException)"]
-        Hikari["Pool de Conexiones HikariCP"]
     end
 
     subgraph BD["Base de Datos"]
@@ -795,8 +770,8 @@ graph TD
     Service --> Repo
     Repo --> Template
     Template --> Translator
-    Template --> Hikari
-    Hikari -->|"Conexiones Reutilizables TCP"| Postgres
+    Template --> DS
+    DS -->|"Conexión JDBC (Driver)"| Postgres
 ```
 
 #### Configuración de Dependencias (`pom.xml`)
@@ -822,11 +797,6 @@ spring:
     username: postgres
     password: 1234
     driver-class-name: org.postgresql.Driver
-    hikari:
-      maximum-pool-size: 10
-      minimum-idle: 2
-      idle-timeout: 300000
-      connection-timeout: 20000
 ```
 
 ---
@@ -1033,7 +1003,7 @@ public class EnrollmentService {
 
 | Aspecto | JDBC Tradicional (Puro) | Spring JDBC (`JdbcTemplate`) |
 | :--- | :--- | :--- |
-| **Gestión de Conexiones** | Manual (`DriverManager` / `close()`) | Automática mediante `DataSource` y HikariCP |
+| **Gestión de Conexiones** | Manual (`DriverManager` / `close()`) | Automática mediante `DataSource` administrado por Spring |
 | **Manejo de Excepciones** | Obligatorio `catch (SQLException e)` | Automático (`DataAccessException` runtime) |
 | **Consultas y Parámetros** | `PreparedStatement` con índices `1, 2, ...` | `JdbcTemplate` o parámetros nombrados (`:nombre`) |
 | **Mapeo de Resultados** | Bucle manual `while (rs.next())` | Expresiones Lambda / `RowMapper<T>` |
@@ -1046,11 +1016,7 @@ public class EnrollmentService {
 > **Enfoque:** Migración del código JDBC puro hacia el ecosistema Spring Boot.
 
 #### Objetivos del Live Coding:
-1. Configurar `application.yml` con el pool de conexiones HikariCP.
+1. Configurar `application.yml` con las propiedades de conexión del `DataSource`.
 2. Refactorizar el repositorio manual reemplazando `PreparedStatement` y `ResultSet` por `JdbcTemplate` y expresiones Lambda con `RowMapper`.
 3. Utilizar `NamedParameterJdbcTemplate` para consultas con parámetros por nombre.
 4. Sustituir el bloque `try-catch` con `rollback()` manual por la anotación declarativa `@Transactional`.
-
-#### Guía de Ejecución para el Profesor:
-* **Paso 1:** Mostrar la drástica reducción de líneas de código al eliminar el boilerplate de JDBC.
-* **Paso 2:** Probar la transacción declarativa con `@Transactional` verificando que ante excepciones runtime se deshacen los cambios.
