@@ -67,7 +67,7 @@
                                 <interfaceOnly>true</interfaceOnly>
                                 <useJakartaEe>true</useJakartaEe>
                                 <sourceFolder>src/java/main</sourceFolder>
-                                <generateApis>false</generateApis>
+                                <!-- <generateApis>false</generateApis>-->
                                 <useSpringBoot3>true</useSpringBoot3>
                             </configOptions>
                             <apiDocsUrl>http://localhost:8080/v3/api-docs</apiDocsUrl>
