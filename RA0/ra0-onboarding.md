@@ -127,10 +127,11 @@ Entra en [Spring Initializr](https://start.spring.io/) y define la estructura t�
    * [x] *Reformat code*
    * [x] *Optimize imports*
 
-### 1.4 Plugins Esenciales
+7. **Algunos Plugins**
 Instala los siguientes plugins desde el Marketplace de IntelliJ (`Settings` -> `Plugins`):
 1. **Lombok:** Vital para evitar escribir código repetitivo (boilers) en Java.
-2. **Grep Console:** Añade colores personalizados a la consola de salida de IntelliJ para distinguir fácilmente entre logs de tipo `INFO`, `WARN` y `ERROR`.
+2. **SonarQube:** Analiza el código mientras programas y detecta posibles errores, problemas de calidad, vulnerabilidades y malas prácticas. Ayuda a mejorar la legibilidad, la seguridad y el mantenimiento del código Java.
+3. **Grep Console:** Añade colores personalizados a la consola de salida de IntelliJ para distinguir fácilmente entre logs de tipo `INFO`, `WARN` y `ERROR`.
 
 
 ### 3.3 Personalización: Creación de un Banner Propio
