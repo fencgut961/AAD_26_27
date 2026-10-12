@@ -5,7 +5,7 @@ Este documento sirve como guía oficial de referencia rápida para configurar el
 ---
 
 ## Índice
-1. [Configuración de IntelliJ IDEA Community (Portable)](#1-configuración-de-intellij-idea-community-portable)
+1. [Configuración de IntelliJ IDEA Community (Portable)](#1-configuración-de-intellij)
 2. [Control de Versiones con GitHub](#2-control-de-versiones-con-github)
 3. [Creación del Proyecto Base en Spring Boot](#3-creación-del-proyecto-base-en-spring-boot)
 4. [Simplificación de Código con Lombok](#4-simplificación-de-código-con-lombok)
@@ -19,41 +19,27 @@ Este documento sirve como guía oficial de referencia rápida para configurar el
 **Objetivo:** Disponer de un Entorno de Desarrollo Integrado (IDE) funcional, potente y portátil para programar en Java y Spring Boot sin necesidad de permisos de administrador.
 
 ### 1.1 Descargar IntelliJ Community Portable
-1. Entra en el sitio web de Portapps: [Portapps - IntelliJ IDEA Community Portable](https://portapps.io/app/intellij-idea-community-portable/).
+1. Entra en el sitio web de Portapps: [Portapps - IntelliJ IDEA Community Portable](https://portapps.io/app/intellij/).
 2. Descarga la versión **Portable (ZIP)** correspondiente a la arquitectura de tu sistema (generalmente Windows 64-bits).
 
-![Descarga de IntelliJ Community Portable](/img/intellij-portable-download.png)
+![Descarga de IntelliJ Community Portable](resources/intellij-portable-download.png)
 
 ### 1.2 Descompresión y Estructura de Directorios
 Para mantener todo organizado de forma portátil en tu equipo o unidad USB, sigue esta estructura estricta de carpetas:
 
 1. Crea o descomprime la aplicación en un directorio raíz limpio, evitando espacios en la ruta. Por ejemplo:
-   `C:\apuntes-aad\intellij-idea-community-portable\`
+   `C:\aad\intellij\`
 2. Crea una carpeta dedicada para tu área de trabajo (workspace) donde se guardarán todos los proyectos de clase:
-   `C:\apuntes-aad\intellij-idea-community-portable\workspace\`
+   `C:\aad\intellij\workspace\`
 3. Crea una carpeta para centralizar los JDKs (Kits de Desarrollo de Java) que vayas a descargar:
-   `C:\apuntes-aad\intellij-idea-community-portable\jdks\`
+   `C:\aad\intellij\jdks\`
 
 ### 1.3 Primer Inicio y Configuración de IntelliJ
 Una vez ejecutado el IDE por primera vez, realiza las siguientes configuraciones iniciales:
 
 * **Keymap de Eclipse:** Si vienes de utilizar Eclipse en cursos anteriores y estás acostumbrado a sus atajos, puedes mantenerlos yendo a:
-  `Settings` -> `Keymap` -> Seleccionar **Eclipse** en el menú desplegable.
-* **Descargar y Configurar el SDK (JDK):**
-  1. Ve a `File` -> `Project Structure` -> `SDKs`.
-  2. Haz clic en el botón `+` (Add SDK) -> `Download JDK`.
-  3. Selecciona la versión **Java 21** (o la versión recomendada para el curso) y la distribución (ej. Eclipse Temurin o Oracle OpenJDK).
-  4. **Importante:** Establece la ruta de descarga dentro de la carpeta portable que creaste en el paso anterior:
-     `C:\apuntes-aad\intellij-idea-community-portable\jdks\`
-* **Acciones al Guardar (Actions on Save):**
-  Automatiza el formateo de tu código para mantenerlo limpio. Ve a `Settings` -> `Tools` -> `Actions on Save` y marca las casillas:
-  * [x] *Reformat code*
-  * [x] *Optimize imports*
-
-### 1.4 Plugins Esenciales
-Instala los siguientes plugins desde el Marketplace de IntelliJ (`Settings` -> `Plugins`):
-1. **Lombok:** Vital para evitar escribir código repetitivo (boilers) en Java.
-2. **Grep Console:** Añade colores personalizados a la consola de salida de IntelliJ para distinguir fácilmente entre logs de tipo `INFO`, `WARN` y `ERROR`.
+  `Customize` -> `Keymap` -> Seleccionar **Eclipse** en el menú desplegable.
+![alt text](resources/intellij-customize-keymap.png)
 
 ---
 
@@ -77,21 +63,23 @@ Instala los siguientes plugins desde el Marketplace de IntelliJ (`Settings` -> `
 ### 2.3 Clonación y Configuración Inicial Local
 Para trabajar sobre este repositorio remoto, debes traerlo a tu entorno de desarrollo local:
 
-1. Copia la dirección HTTPS o SSH de tu repositorio remoto desde GitHub.
-2. En IntelliJ, selecciona **Get from VCS** en la pantalla de bienvenida o en el menú de proyectos.
-3. Pega la URL de tu repositorio y establece la ruta local dentro de tu workspace portable:
-   `C:\apuntes-aad\intellij-idea-community-portable\workspace\acceso-a-datos`
+1. Para ello en la pantalla de Intellij inicial ubica en `Projects` la opción `Clone Repository`. ![Projects -> Clone Repository](resources/intellij-project-clone-repository.png)
+2. En la pantalla Clone Repository, selecciona **Github** y logea en tu cuenta. ![Github -> Log In to Github](resources/intellij-project-clone-repository-github.png)
+3. Una vez logeado en tu cuenta selecciona el repositorio que quieres clonar dentro de tu workspace:
+   `C:\aad\intellij\workspace\AAD_26_27` y dale a **Clone** 
+
+   ![AAD_26_27](resources/github-repositories.png)
 4. **Ignorar Archivos Locales (.gitignore):**
    Los entornos de desarrollo generan archivos de configuración que no deben subirse a la nube porque dependen de la máquina de cada programador.
-   * Abre o crea un archivo llamado `.gitignore` en la raíz de tu proyecto.
-   * Añade la siguiente línea para evitar que se suban los metadatos específicos de tu IntelliJ:
-     ```text.idea/
-     *.iml
-     out/
-     target/
+   * Abre o crea un archivo llamado `.gitignore` en la raíz de tu proyecto. Si creaste el proyecto con [Spring Initializr](https://start.spring.io/) ya deberías tener el fichero una vez descomprimas e importes el proyecto al repositorio clonado.
+   * Dentro de este fichero deberás incluir una líea por cada carpeta o fichero que quieras ignorar, evitando que se suban los metadatos específicos de tu IntelliJ o de terceros:
+     ```
+     ### IntelliJ IDEA ###
+     .idea
      ```
 5. Haz tu primer **Commit & Push** para validar el funcionamiento:
-   * En la pestaña de Git en IntelliJ, selecciona el archivo `.gitignore`.
+   * En la parte izquiera de IntelliJ, selecciona la opción `Commit`.
+   ![Intellij -> Commit](intellij-commit.png)
    * Añade un mensaje descriptivo: `chore: add gitignore rules for IntelliJ`.
    * Pulsa **Commit and Push** para enviar los cambios a GitHub y comprueba en el navegador que el archivo se ha subido correctamente.
 
@@ -121,13 +109,29 @@ Entra en [Spring Initializr](https://start.spring.io/) y define la estructura t�
     * **Spring Web** (necesaria para habilitar los componentes REST de la aplicación).
     * **Lombok** (la usaremos para el punto 4)
 
-![Configuración de Spring Initializr](img/spring-initializr.png)
+![Configuración de Spring Initializr](resources/spring-initializr.png)
 
 ### 3.2 Generación e Integración
 1. Haz clic en el botón **Generate** (o pulsa `Ctrl + Enter`) para descargar el archivo ZIP autogenerado.
-2. Descomprime el contenido de este archivo ZIP directamente dentro de tu carpeta del repositorio de GitHub local que clonaste en el paso anterior (`C:\apuntes-aad\intellij-idea-community-portable\workspace\acceso-a-datos`).
+2. Descomprime el contenido de este archivo ZIP directamente dentro de tu carpeta del repositorio de GitHub local que clonaste en el paso anterior (`C:\aad\intellij\workspace\AAD_26_27`).
 3. Abre el proyecto en IntelliJ. El IDE detectará automáticamente que es un proyecto Maven e importará todas las dependencias del archivo `pom.xml`.
 4. **Limpieza de archivos residuales:** Puedes borrar de la raíz del proyecto los archivos CLI de Maven que no vayamos a utilizar directamente, como la carpeta `.mvn/`, el script `mvnw` y `mvnw.cmd`.
+5. **Descargar y Configurar el SDK (JDK):**
+   1. Ve a `File` -> `Project Structure` -> `SDKs`.
+   2. Haz clic en el botón `+` (Add SDK) -> `Download JDK`.
+   3. Selecciona la versión **Java 21** (o la versión recomendada para el curso) y la distribución (ej. Eclipse Temurin o Oracle OpenJDK).
+   4. **Importante:** Establece la ruta de descarga dentro de la carpeta portable que creaste en el paso anterior:
+     `C:\aad\intellij\jdks\`
+6. **Acciones al Guardar (Actions on Save):**
+  Automatiza el formateo de tu código para mantenerlo limpio. Ve a `Settings` -> `Tools` -> `Actions on Save` y marca las casillas:
+   * [x] *Reformat code*
+   * [x] *Optimize imports*
+
+### 1.4 Plugins Esenciales
+Instala los siguientes plugins desde el Marketplace de IntelliJ (`Settings` -> `Plugins`):
+1. **Lombok:** Vital para evitar escribir código repetitivo (boilers) en Java.
+2. **Grep Console:** Añade colores personalizados a la consola de salida de IntelliJ para distinguir fácilmente entre logs de tipo `INFO`, `WARN` y `ERROR`.
+
 
 ### 3.3 Personalización: Creación de un Banner Propio
 Por defecto, al iniciar una aplicación de Spring Boot se muestra un logotipo en modo texto ASCII de "Spring". Vamos a cambiarlo para que muestre el identificador de nuestro módulo:
