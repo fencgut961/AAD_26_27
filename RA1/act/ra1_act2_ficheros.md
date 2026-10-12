@@ -1,13 +1,13 @@
 # 🌐 App 2: AadTex Cloud Dispatcher — Ficheros de Ejemplo (Input & Consumo)
 
-Este documento especifica los ficheros de entrada que consume la **App 2** desde la carpeta `/workspace/store_data/output/` (generados previamente por la App 1) y el resultado corporativo final transmitido a la nube.
+Este documento especifica los ficheros de entrada que consume la **App 2** desde la carpeta `c:/workspace/store_data/output/` (generados previamente por la App 1) y el resultado corporativo final transmitido a la nube.
 
 ---
 
 ## 📁 Estructura Consumida en `/workspace/store_data/output/`
 
 ```text
-/workspace/store_data/output/
+c:/workspace/store_data/output/
 ├── daily_sales_spain.csv         <-- CSV limpio y validado en UTF-8
 ├── daily_sales_china.csv         <-- CSV con caracteres CJK validados
 ├── daily_sales_usa.csv           <-- CSV extraído del contenedor ZIP por App 1

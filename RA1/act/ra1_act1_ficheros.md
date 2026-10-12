@@ -1,4 +1,4 @@
-# 🏬 App 1: AadTex Store Ingestion Engine — Ficheros de Ejemplo (Input)
+# 🏬 ra1_act1: AadTex Store Ingestion Engine (App 1) — Ficheros de Ejemplo (Input)
 
 Este documento especifica los ficheros de prueba que las tiendas físicas depositan en la carpeta `/workspace/store_data/input/` para ser procesados por la **App 1**.
 
@@ -7,7 +7,7 @@ Este documento especifica los ficheros de prueba que las tiendas físicas deposi
 ## 📁 Estructura de la Carpeta `/workspace/store_data/input/`
 
 ```text
-/workspace/store_data/
+c:/workspace/store_data/
 ├── keys/
 │   └── AadTexSecret.key                  <-- Clave secreta AES-128 ("AadTexSecret2026")
 └── input/                                <-- ENTRADA BRUTA DE LAS TIENDAS

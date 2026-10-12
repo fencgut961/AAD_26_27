@@ -1,16 +1,22 @@
-# 🌐 RA1_ACT2: AadTex Cloud Dispatcher & Advanced Transport (App 2)
+# 🌐 ra1_act2: AadTex Cloud Dispatcher & Advanced Transport (App 2)
 ## Escaneo Recursivo (Files.walk), Integridad SHA-256, Codificación Base64, Reporte Cloud JSON v2.0, Réplicas Zero-Copy (FileChannel) y Exportación Multi-Charset
 
-**Módulo:** Acceso a Datos (AAD)  
-**RA1:** Manejo de Ficheros (Avanzado)  
-**Entregables:** Repositorio **GitHub** con el proyecto Spring Boot / Java, archivo **`ra1_act2.zip`** subido a Moodle y defensa oral presencial.
+- **Módulo:** Acceso a Datos (AAD)
+- **RA1:** Manejo de Ficheros
+- **Entregables:**
+  - **Repositorio GitHub:** enlace al repositorio que contenga el proyecto completo desarrollado con Spring Boot y Java, incluyendo todo el código fuente y los archivos necesarios para su configuración, instalación, ejecución y uso. Se deberá incluir un archivo `README.md` con las instrucciones correspondientes.
+  - **Archivo ZIP:** archivo `ra1_act2.zip` con una copia completa del contenido del repositorio de GitHub, incluyendo todos los archivos necesarios para ejecutar la aplicación. Se deberá subir a Moodle.
+
+**Importante:** ambas entregas deben contener la misma versión del proyecto. Antes de realizar la entrega, se deberá comprobar que la aplicación se ejecuta correctamente siguiendo las instrucciones proporcionadas y que incluye todos los recursos necesarios para su funcionamiento.
+
+**Recomendación:** mantener el proyecto actualizado en GitHub y, una vez finalizado, generar el archivo `ra1_act2.zip` con todo el contenido del repositorio para entregarlo en Moodle.
 
 ---
 
 ## 1. Contexto de Negocio Empresarial (Caso AadTex v2.0 - Sede Central)
 
 ### ❓ ¿Cuál es el problema real que estamos resolviendo con la App 2?
-Una vez que el motor de ingestión (**App 1**) ha procesado los lotes brutos de las tiendas y ha publicado los archivos validados en la carpeta `/workspace/store_data/output/`, la Sede Central de **AadTex** requiere una segunda aplicación independiente de backend (**App 2: Cloud Dispatcher**) que consuma estos datos para **seis propósitos corporativos clave**:
+Una vez que el motor de ingestión (**App 1**) ha procesado los lotes brutos de las tiendas y ha publicado los archivos validados en la carpeta `c:/workspace/store_data/output/`, la Sede Central de **AadTex** requiere una segunda aplicación independiente de backend (**App 2: Cloud Dispatcher**) que consuma estos datos para **seis propósitos corporativos clave**:
 
 1. **Escaneo Recursivo Multirregional Profundo**: Los archivos procesados por la App 1 y filiales regionales pueden estar organizados en árboles de subdirectorios. La App 2 debe explorar el directorio `/output/` a cualquier nivel de profundidad usando **`Files.walk()`** con Streams.
 2. **Auditoría Criptográfica de Integridad (SHA-256)**: Para verificar que ningún fichero fue manipulado ni alterado durante el tránsito entre aplicaciones, la App 2 calcula el **Hash SHA-256** del archivo original antes de consolidarlo.
@@ -27,7 +33,7 @@ Una vez que el motor de ingestión (**App 1**) ha procesado los lotes brutos de 
 La **App 2** utiliza como punto de entrada exclusivo la carpeta **`/workspace/store_data/output/`** publicada por la **App 1**:
 
 ```text
-/workspace/store_data/
+c:/workspace/store_data/
 └── output/                       <-- Punto de entrada consumido por la App 2
     ├── processed/                <-- Leído recursivamente por la App 2 con Files.walk()
     │   ├── daily_sales_spain.csv
