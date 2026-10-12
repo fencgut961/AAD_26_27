@@ -39,7 +39,7 @@ Una vez ejecutado el IDE por primera vez, realiza las siguientes configuraciones
 
 * **Keymap de Eclipse:** Si vienes de utilizar Eclipse en cursos anteriores y estás acostumbrado a sus atajos, puedes mantenerlos yendo a:
   `Customize` -> `Keymap` -> Seleccionar **Eclipse** en el menú desplegable.
-![alt text](resources/intellij-customize-keymap.png)
+![Intellij -> Customize -> Keymap](https://github.com/fencgut961/AAD_26_27/blob/main/RA0/resources/intellij-customize-keymap.png)
 
 ---
 
@@ -63,12 +63,12 @@ Una vez ejecutado el IDE por primera vez, realiza las siguientes configuraciones
 ### 2.3 Clonación y Configuración Inicial Local
 Para trabajar sobre este repositorio remoto, debes traerlo a tu entorno de desarrollo local:
 
-1. Para ello en la pantalla de Intellij inicial ubica en `Projects` la opción `Clone Repository`. ![Projects -> Clone Repository](resources/intellij-project-clone-repository.png)
-2. En la pantalla Clone Repository, selecciona **Github** y logea en tu cuenta. ![Github -> Log In to Github](resources/intellij-project-clone-repository-github.png)
+1. Para ello en la pantalla de Intellij inicial ubica en `Projects` la opción `Clone Repository`. ![Projects -> Clone Repository](https://github.com/fencgut961/AAD_26_27/blob/main/RA0/resources/intellij-project-clone-repository.png)
+2. En la pantalla Clone Repository, selecciona **Github** y logea en tu cuenta. ![Github -> Log In to Github](https://github.com/fencgut961/AAD_26_27/blob/main/RA0/resources/intellij-project-clone-repository-github.png)
 3. Una vez logeado en tu cuenta selecciona el repositorio que quieres clonar dentro de tu workspace:
    `C:\aad\intellij\workspace\AAD_26_27` y dale a **Clone** 
 
-   ![AAD_26_27](resources/github-repositories.png)
+   ![AAD_26_27](https://github.com/fencgut961/AAD_26_27/blob/main/RA0/resources/github-repositories.png)
 4. **Ignorar Archivos Locales (.gitignore):**
    Los entornos de desarrollo generan archivos de configuración que no deben subirse a la nube porque dependen de la máquina de cada programador.
    * Abre o crea un archivo llamado `.gitignore` en la raíz de tu proyecto. Si creaste el proyecto con [Spring Initializr](https://start.spring.io/) ya deberías tener el fichero una vez descomprimas e importes el proyecto al repositorio clonado.
@@ -79,7 +79,7 @@ Para trabajar sobre este repositorio remoto, debes traerlo a tu entorno de desar
      ```
 5. Haz tu primer **Commit & Push** para validar el funcionamiento:
    * En la parte izquiera de IntelliJ, selecciona la opción `Commit`.
-   ![Intellij -> Commit](intellij-commit.png)
+   ![Intellij -> Commit](https://github.com/fencgut961/AAD_26_27/blob/main/RA0/intellij-commit.png)
    * Añade un mensaje descriptivo: `chore: add gitignore rules for IntelliJ`.
    * Pulsa **Commit and Push** para enviar los cambios a GitHub y comprueba en el navegador que el archivo se ha subido correctamente.
 
@@ -109,7 +109,7 @@ Entra en [Spring Initializr](https://start.spring.io/) y define la estructura t�
     * **Spring Web** (necesaria para habilitar los componentes REST de la aplicación).
     * **Lombok** (la usaremos para el punto 4)
 
-![Configuración de Spring Initializr](resources/spring-initializr.png)
+![Configuración de Spring Initializr](https://github.com/fencgut961/AAD_26_27/blob/main/RA0/resources/spring-initializr.png)
 
 ### 3.2 Generación e Integración
 1. Haz clic en el botón **Generate** (o pulsa `Ctrl + Enter`) para descargar el archivo ZIP autogenerado.
