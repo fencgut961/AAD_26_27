@@ -1,4 +1,4 @@
-# 🌐 App 2: AadTex Cloud Dispatcher — Ficheros de Ejemplo (Input & Consumo)
+# 🌐 ra1_act2: AadTex Cloud Dispatcher & Advanced Transport (App 2) — Ficheros de Ejemplo (Input & Consumo)
 
 Este documento especifica los ficheros de entrada que consume la **App 2** desde la carpeta `c:/workspace/store_data/output/` (generados previamente por la App 1) y el resultado corporativo final transmitido a la nube.
 
