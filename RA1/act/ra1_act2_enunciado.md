@@ -3,8 +3,8 @@
 
 - **Módulo:** Acceso a Datos (AAD)
 - **RA1:** Manejo de Ficheros
-- **Importante:** ambas entregas deben contener la misma versión del proyecto. Antes de realizar la entrega, se deberá comprobar que la aplicación se ejecuta correctamente siguiendo las instrucciones proporcionadas y que incluye todos los recursos necesarios para su funcionamiento.
-- **Recomendación:** mantener el proyecto actualizado en GitHub y, una vez finalizado, generar el archivo `ra1_act2.zip` con todo el contenido del repositorio para entregarlo en Moodle.
+- **Importante:** Antes de realizar la entrega, se deberá comprobar que la aplicación se ejecuta correctamente siguiendo las instrucciones proporcionadas y que incluye todos los recursos necesarios para su funcionamiento.
+- **Recomendación:** Mantener el proyecto actualizado en GitHub y, una vez finalizado, generar el archivo `ra1_act1.zip` con todo el contenido del repositorio para entregarlo en Moodle.
 
 ---
 
