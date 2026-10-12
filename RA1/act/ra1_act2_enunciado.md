@@ -3,13 +3,8 @@
 
 - **Módulo:** Acceso a Datos (AAD)
 - **RA1:** Manejo de Ficheros
-- **Entregables:**
-  - **Repositorio GitHub:** enlace al repositorio que contenga el proyecto completo desarrollado con Spring Boot y Java, incluyendo todo el código fuente y los archivos necesarios para su configuración, instalación, ejecución y uso. Se deberá incluir un archivo `README.md` con las instrucciones correspondientes.
-  - **Archivo ZIP:** archivo `ra1_act2.zip` con una copia completa del contenido del repositorio de GitHub, incluyendo todos los archivos necesarios para ejecutar la aplicación. Se deberá subir a Moodle.
-
-**Importante:** ambas entregas deben contener la misma versión del proyecto. Antes de realizar la entrega, se deberá comprobar que la aplicación se ejecuta correctamente siguiendo las instrucciones proporcionadas y que incluye todos los recursos necesarios para su funcionamiento.
-
-**Recomendación:** mantener el proyecto actualizado en GitHub y, una vez finalizado, generar el archivo `ra1_act2.zip` con todo el contenido del repositorio para entregarlo en Moodle.
+- **Importante:** ambas entregas deben contener la misma versión del proyecto. Antes de realizar la entrega, se deberá comprobar que la aplicación se ejecuta correctamente siguiendo las instrucciones proporcionadas y que incluye todos los recursos necesarios para su funcionamiento.
+- **Recomendación:** mantener el proyecto actualizado en GitHub y, una vez finalizado, generar el archivo `ra1_act2.zip` con todo el contenido del repositorio para entregarlo en Moodle.
 
 ---
 
