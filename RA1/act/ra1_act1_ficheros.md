@@ -82,6 +82,22 @@ ZARA_CENTRAL_FIN,Central Financial Office,95000.00,FINANCIAL_REPORT,2026-09-13
 * **Tratamiento en App 1**: Descompresión en caliente con `ZipInputStream` para extraer:
   * `daily_sales_usa.csv`
   * `signature_usa.jpg`
+* **Contenido real de los ficheros dentro del ZIP**:
+
+  1. `daily_sales_usa.csv`
+```csv
+StoreID,StoreName,SalesAmount,Category,TransactionDate
+ZARA_US_001,Zara Times Square New York,42000.00,WOMEN,2026-09-13
+ZARA_US_001,Zara Times Square New York,18850.75,MEN,2026-09-13
+ZARA_US_001,Zara 5th Avenue New York,7600.00,KIDS,2026-09-13
+```
+
+  2. `signature_usa.jpg`
+```text
+Archivo binario JPEG (fichero gráfico). Se representa como binario, no como texto plano.
+Magic Bytes esperados: FF D8 FF E0 ...
+Contenido esperado: comprobante de firma del lote USA, almacenado como JPG y copiado a /output/signatures/
+```
 
 ---
 
