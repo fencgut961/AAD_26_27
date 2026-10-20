@@ -658,7 +658,7 @@ sequenceDiagram
     participant Buffer as ByteBuffer (16 Bytes)
     participant Java as Código Java
 
-    Java->>Channel: channel.read(buffer, 32) [Leer desde byte 32]
+    Java->>Channel: channel.read(buffer, 16) [Leer desde byte 16]
     Channel->>Disk: Solicitud I/O en posición
     Disk-->>Channel: Retornar 16 bytes raw
     Channel-->>Buffer: Llenar buffer de memoria
