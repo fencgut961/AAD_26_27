@@ -221,6 +221,22 @@ En aplicaciones empresariales, abrir y cerrar una conexión TCP con la base de d
 
 Spring Boot autoconfigura por defecto **HikariCP**, considerado el administrador de pool de conexiones JDBC más rápido, ligero y eficiente del ecosistema Java. HikariCP mantiene un conjunto precalculado de conexiones abiertas que son reutilizadas por los hilos de la aplicación.
 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Thread as Hilo de Aplicación (Service)
+    participant Pool as HikariCP Connection Pool
+    participant DB as PostgreSQL Database
+
+    Note over Pool: Pool inicializado con 10 conexiones activas
+    Thread->>Pool: getConnection()
+    Pool-->>Thread: Asigna Conexión Libre #3
+    Thread->>DB: Ejecuta Consulta SQL / DML
+    DB-->>Thread: Retorna ResultSet / Filas Afectadas
+    Thread->>Pool: close() (Devuelve Conexión al Pool)
+    Note over Pool: Conexión #3 marcada como libre para reutilización
+```
+
 La configuración recomendada en el archivo `application.yml` integra la fuente de datos, el pool HikariCP y el comportamiento de Hibernate:
 
 ```yaml
@@ -255,6 +271,29 @@ El **Mapeo Objeto-Relacional (ORM)** es la técnica de programación que estable
 - **Atributo / Campo** $\\rightarrow$ **Columna de la Tabla**
 - **Instancia / Objeto** $\\rightarrow$ **Fila / Registro**
 - **Relación entre Objetos** $\\rightarrow$ **Clave Foránea (*Foreign Key*) o Tabla Intermedia**
+
+```mermaid
+classDiagram
+    class StudentEntity {
+        <<@Entity>>
+        +Long id
+        +String nif
+        +String name
+        +String email
+        +String course
+    }
+
+    class StudentTable {
+        <<Database Table: student>>
+        +BIGINT id_student PK
+        +VARCHAR(9) nif UNIQUE
+        +VARCHAR(100) name
+        +VARCHAR(100) email UNIQUE
+        +VARCHAR(50) course
+    }
+
+    StudentEntity ..> StudentTable : Mapeo Objeto-Relacional (ORM)
+```
 
 ```mermaid
 graph LR
@@ -440,6 +479,21 @@ public class Student {
 }
 ```
 
+```mermaid
+classDiagram
+    class Student {
+        +Long id
+        +String name
+        +Profile profile
+    }
+    class Profile {
+        +Long id
+        +String address
+        +String phone
+    }
+    Student "1" --> "1" Profile : @OneToOne\n(FK: profile_id)
+```
+
 #### 3.4.2 Relaciones Uno a Muchos y Muchos a Uno (`@OneToMany` / `@ManyToOne`)
 
 Es la relación más habitual. En el dominio académico, un estudiante posee múltiples matrículas (`Enrollment`), pero cada matrícula pertenece a un único estudiante:
@@ -482,6 +536,30 @@ public class Enrollment {
 }
 ```
 
+```mermaid
+classDiagram
+    class Student {
+        +Long id
+        +String name
+        +List~Enrollment~ enrollments
+    }
+    class Enrollment {
+        +Long id
+        +Student student
+        +Module module
+        +LocalDate enrollmentDate
+        +Double finalGrade
+    }
+    class Module {
+        +Long id
+        +String code
+        +String name
+    }
+
+    Student "1" <--> "0..*" Enrollment : @OneToMany / @ManyToOne\n(mappedBy = "student")
+    Module "1" <--> "0..*" Enrollment : @OneToMany / @ManyToOne\n(mappedBy = "module")
+```
+
 #### 3.4.3 Relaciones Muchos a Muchos (`@ManyToMany`) y la Entidad Intermedia `Enrollment`
 
 Cuando dos entidades se relacionan de forma múltiple (por ejemplo, `Teacher` e imparte múltiples `Module`, y un `Module` es impartido por múltiples `Teacher`), se utiliza `@ManyToMany` con `@JoinTable`:
@@ -506,6 +584,21 @@ public class Teacher {
     )
     private List<Module> modules = new ArrayList<>();
 }
+```
+
+```mermaid
+classDiagram
+    class Teacher {
+        +Long id
+        +String name
+        +List~Module~ modules
+    }
+    class Module {
+        +Long id
+        +String code
+        +String name
+    }
+    Teacher "0..*" <--> "0..*" Module : @ManyToMany\n(Tabla Unión: teacher_module)
 ```
 
 *Nota del Dominio Académico:* En la relación entre `Student` y `Module` no se utiliza directamente `@ManyToMany`, porque la unión física (la matrícula) contiene atributos propios requeridos por el negocio (`enrollmentDate` y `finalGrade`). En su lugar, se descompone en dos relaciones `@ManyToOne` dentro de la entidad intermedia explicitada `Enrollment`.
@@ -596,6 +689,46 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 ```
 
 Durante la fase de arranque de la aplicación, Spring Data JPA analiza estas interfaces y utiliza proxies dinámicos para generar la implementación concreta en tiempo de ejecución, eliminando la necesidad de escribir la capa DAO manualmente.
+
+```mermaid
+classDiagram
+    class Repository~T, ID~ {
+        <<Interface Spring Data>>
+    }
+    class CrudRepository~T, ID~ {
+        <<Interface>>
+        +save(entity)
+        +findById(id)
+        +deleteById(id)
+    }
+    class PagingAndSortingRepository~T, ID~ {
+        <<Interface>>
+        +findAll(pageable)
+        +findAll(sort)
+    }
+    class JpaRepository~T, ID~ {
+        <<Interface>>
+        +flush()
+        +saveAndFlush(entity)
+        +deleteInBatch(entities)
+    }
+    class StudentRepository {
+        <<Interface de Usuario>>
+        +findByName(name)
+        +findByEmailContaining(domain)
+    }
+    class SimpleJpaRepository~T, ID~ {
+        <<Implementación Runtime / Proxy>>
+        -EntityManager entityManager
+    }
+
+    Repository <|-- CrudRepository
+    CrudRepository <|-- PagingAndSortingRepository
+    PagingAndSortingRepository <|-- JpaRepository
+    JpaRepository <|-- StudentRepository
+    JpaRepository <|.. SimpleJpaRepository
+    StudentRepository <|.. SimpleJpaRepository : Generado dinámicamente
+```
 
 ---
 
@@ -850,6 +983,14 @@ Cuando las consultas derivadas por nombre resultan insuficientes para expresar c
 - **SQL Tradicional:** `SELECT * FROM alumno WHERE email LIKE '%centro.es'`
 - **JPQL Equivalente:** `SELECT s FROM Student s WHERE s.email LIKE '%centro.es'`
 
+```mermaid
+graph LR
+    JPQL["Consulta JPQL sobre Entidades:<br/>SELECT s FROM Student s WHERE s.course = :c"] --> Engine[Hibernate JPQL Parser & AST]
+    Engine --> Dialect[PostgreSQL Dialect Translator]
+    Dialect --> SQL["Consulta SQL sobre Tablas:<br/>SELECT id_student, nif, name FROM student WHERE course = ?"]
+    SQL --> DB[(Base de Datos Relacional)]
+```
+
 ---
 
 ### 6.2 Consultas Parametrizadas con `@Query` y `@Param`
@@ -936,9 +1077,29 @@ public class Student {
 }
 ```
 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Service as StudentService
+    participant Repo as StudentRepository
+    participant Val as Jakarta Validator
+    participant DB as PostgreSQL
+
+    Service->>Repo: save(student)
+    Repo->>Val: Validar anotaciones (@NotBlank, @Email, @Size)
+    
+    alt Datos Inválidos
+        Val-->>Service: ConstraintViolationException (Mensaje de error)
+        Note over DB: No se ejecuta ninguna consulta INSERT
+    else Datos Válidos
+        Val->>DB: INSERT INTO student ...
+        DB-->>Service: Entidad Persistida
+    end
+```
+
 ---
 
-### 7.2 Captura y Tubería de Validación
+### 7.2 Captura y Tubería de Validación `ConstraintViolationException`
 
 El siguiente esquema de flujo muestra el comportamiento del sistema cuando se intenta persistir un objeto que incumple las restricciones de Bean Validation:
 
@@ -1122,6 +1283,32 @@ El problema N+1 es una ineficiencia universal en todas las herramientas ORM indi
 ---
 
 ## 9. Síntesis y Buenas Prácticas para el Desarrollo con Spring Data JPA
+
+```mermaid
+graph TD
+    A[Buenas Prácticas en JPA & Spring Data] --> B[1. Modelado de Entidades]
+    A --> C[2. Repositorios Declarativos]
+    A --> D[3. Gestión Transaccional]
+    A --> E[4. Validaciones & Excepciones]
+    A --> F[5. Optimización & Logs]
+
+    B --> B1[Constructores vacíos & Tipos Envoltorio]
+    B --> B2[Evitar recurrencias en toString/equals/hashCode]
+    B --> B3[Configurar FetchType.LAZY en relaciones N:1 y 1:1]
+
+    C --> C1[Extender de JpaRepository]
+    C --> C2[Consultas derivadas para filtros simples]
+    C --> C3[@Query con JPQL para operaciones complejas]
+
+    D --> D1[@Transactional en Capa de Servicio @Service]
+    D --> D2[readOnly = true en consultas de lectura]
+
+    E --> E1[Anotaciones Jakarta Bean Validation]
+    E --> E2[Excepciones de Dominio Personalizadas]
+
+    F --> F1[Monitorear org.hibernate.SQL en DEBUG]
+    F --> F2[Resolver N+1 con JOIN FETCH o EntityGraph]
+```
 
 1. **Definición de Entidades:**
    - Asegurar siempre un constructor vacío y utilizar tipos de datos objeto (`Long`, `Integer`, `Double`).
