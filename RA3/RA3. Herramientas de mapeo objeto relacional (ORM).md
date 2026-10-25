@@ -20,11 +20,11 @@ El propósito fundamental de JPA es permitir que el desarrollador interactúe co
 
 ```mermaid
 graph TD
-    App[Aplicación Java / Servicios] -->|Anotaciones y Repositorios| JPA[JPA - Jakarta Persistence API Specification]
-    JPA -->|Implementación / Motor ORM| Provider[Proveedor de Persistencia: Hibernate / EclipseLink]
-    Provider -->|Generación de SQL e Invocaciones JDBC| JDBC[API JDBC - java.sql / javax.sql]
-    JDBC -->|Protocolo de Red Nativo| Driver[Driver JDBC PostgreSQL]
-    Driver -->|Consultas DDL / DML| DB[(Base de Datos Relacional PostgreSQL)]
+    A[Aplicación Java / Servicios] --> B[JPA - Jakarta Persistence API Spec]
+    B --> C[Proveedor de Persistencia: Hibernate / EclipseLink]
+    C --> D[API JDBC: java.sql / javax.sql]
+    D --> E[Driver JDBC de PostgreSQL]
+    E --> F[(Base de Datos PostgreSQL)]
 ```
 
 Un ejemplo comparativo resalta la diferencia de productividad. Mientras que en JDBC insertar un registro requiere definir la cadena SQL, sustituir parámetros posicionales y ejecutar la actualización:
@@ -105,6 +105,8 @@ El ecosistema de persistencia basado en JPA está estructurado en torno a cinco 
 4. **Proveedor de Persistencia (*Persistence Provider*):** Implementación concreta de la especificación (por ejemplo, Hibernate).
 5. **Contexto de Persistencia (*Persistence Context*):** Área de memoria donde el `EntityManager` mantiene y rastrea el estado de los objetos persistentes durante una transacción.
 
+Spring Boot simplifica esta arquitectura al autoconfigurar la fábrica de gestores de entidades (`EntityManagerFactory`), la gestión de transacciones y el escaneo de entidades, permitiendo al desarrollador interactuar directamente mediante interfaces de repositorio.
+
 ```mermaid
 graph LR
     subgraph Spring Context
@@ -132,7 +134,34 @@ graph LR
 
 ---
 
-### 1.5 Limitaciones y Consideraciones Técnicas
+### 1.5 Nota de Arquitectura Comparada: Java vs. Python (JPA vs. SQLAlchemy / Django ORM)
+
+A diferencia del ecosistema Java, donde existe una especificación estándar oficial (**JPA / Jakarta Persistence**) separada de sus proveedores de implementación (**Hibernate**, EclipseLink), en otros lenguajes de programación como **Python** no existe un estándar del lenguaje equivalente a JPA.
+
+En Python, la persistencia orientada a objetos se aborda directamente mediante bibliotecas o frameworks ORM independientes, los cuales implementan dos patrones de diseño arquitectónico contrapuestos:
+
+```mermaid
+graph LR
+    subgraph Ecosistema Java
+        JPA[JPA Specification] --> Hib[Hibernate Implementation]
+        Hib --> DM1[Pattern: Data Mapper / EntityManager]
+    end
+    subgraph Ecosistema Python
+        SA[SQLAlchemy] --> DM2[Pattern: Data Mapper / Session]
+        DJ[Django ORM] --> AR[Pattern: Active Record / Model.save]
+    end
+```
+
+1. **Patrón Data Mapper (SQLAlchemy en Python / JPA-Hibernate en Java):**
+   - La clase de modelo es un objeto plano que no contiene métodos de persistencia.
+   - Un componente externo (`EntityManager` en JPA, `Session` en SQLAlchemy) gestiona el ciclo de vida, rastrea las modificaciones (*dirty checking*) y sincroniza los cambios con la base de datos.
+2. **Patrón Active Record (Django ORM en Python):**
+   - La propia clase de entidad hereda de una clase base (`models.Model`) y encapsula tanto la estructura de datos como el acceso directo a la base de datos.
+   - Las operaciones de persistencia se ejecutan directamente sobre la instancia (`estudiante.save()`, `estudiante.delete()`).
+
+---
+
+### 1.6 Limitaciones y Consideraciones Técnicas
 
 A pesar de las ventajas en productividad, el uso de herramientas ORM exige un conocimiento sólido del comportamiento subyacente de la base de datos relacional:
 
@@ -184,7 +213,6 @@ stateDiagram-v2
         en la base de datos mediante el proceso de Flush.
     end note
 ```
-
 ---
 
 ### 2.3 Integración con Spring Boot, HikariCP y Pooling de Conexiones
@@ -239,10 +267,10 @@ spring:
 
 El **Mapeo Objeto-Relacional (ORM)** es la técnica de programación que establece la correspondencia formal entre el paradigma orientado a objetos y el modelo relacional:
 
-- **Clase Java** $\rightarrow$ **Tabla de Base de Datos**
-- **Atributo / Campo** $\rightarrow$ **Columna de la Tabla**
-- **Instancia / Objeto** $\rightarrow$ **Fila / Registro**
-- **Relación entre Objetos** $\rightarrow$ **Clave Foránea (*Foreign Key*) o Tabla Intermedia**
+- **Clase Java** $\\rightarrow$ **Tabla de Base de Datos**
+- **Atributo / Campo** $\\rightarrow$ **Columna de la Tabla**
+- **Instancia / Objeto** $\\rightarrow$ **Fila / Registro**
+- **Relación entre Objetos** $\\rightarrow$ **Clave Foránea (*Foreign Key*) o Tabla Intermedia**
 
 ```mermaid
 classDiagram
@@ -265,6 +293,23 @@ classDiagram
     }
 
     StudentEntity ..> StudentTable : Mapeo Objeto-Relacional (ORM)
+```
+
+```mermaid
+graph LR
+    subgraph Paradigma Orientado a Objetos
+        C[Clase Java: Student]
+        A[Atributos: name, email]
+        I[Instancia de Objeto]
+    end
+    subgraph Modelo Relacional
+        T[Tabla SQL: student]
+        K[Columnas: name, email]
+        F[Fila / Registro SQL]
+    end
+    C <--> T
+    A <--> K
+    I <--> F
 ```
 
 ---
@@ -360,9 +405,9 @@ La anotación `@GeneratedValue` especifica cómo se asignan los valores de las c
 
 ---
 
-### 3.4 Modelado de Relaciones entre Entidades en el Dominio Académico
+### 3.4 Modelado de Relaciones entre Entidades
 
-El siguiente diagrama entidad-relación representa la arquitectura completa de persistencia del sistema académico:
+En el dominio académico del curso (Alumnos, Perfiles, Módulos, Matrículas y Profesores), la estructura de relaciones entre entidades se modela mediante el siguiente diagrama de clases y cardinalidades:
 
 ```mermaid
 erDiagram
@@ -407,6 +452,7 @@ erDiagram
     }
 ```
 
+
 #### 3.4.1 Relación Uno a Uno (`@OneToOne`)
 
 Ocurre cuando un registro de una entidad se asocia exclusivamente con un registro de otra entidad. Por ejemplo, cada estudiante posee un único perfil personal (`Profile`):
@@ -443,18 +489,20 @@ public class Student {
 ```
 
 ```mermaid
-classDiagram
-    class Student {
-        +Long id
-        +String name
-        +Profile profile
+erDiagram
+    STUDENT ||--|| PROFILE : "1:1 (@OneToOne)"
+
+    STUDENT {
+        bigint id PK
+        varchar name
+        bigint profile_id FK
     }
-    class Profile {
-        +Long id
-        +String address
-        +String phone
+
+    PROFILE {
+        bigint id PK
+        varchar address
+        varchar phone
     }
-    Student "1" --> "1" Profile : @OneToOne\n(FK: profile_id)
 ```
 
 #### 3.4.2 Relaciones Uno a Muchos y Muchos a Uno (`@OneToMany` / `@ManyToOne`)
@@ -500,30 +548,31 @@ public class Enrollment {
 ```
 
 ```mermaid
-classDiagram
-    class Student {
-        +Long id
-        +String name
-        +List~Enrollment~ enrollments
-    }
-    class Enrollment {
-        +Long id
-        +Student student
-        +Module module
-        +LocalDate enrollmentDate
-        +Double finalGrade
-    }
-    class Module {
-        +Long id
-        +String code
-        +String name
+erDiagram
+    STUDENT ||--o{ ENROLLMENT : "posee (1:N)"
+    MODULE ||--o{ ENROLLMENT : "contiene (1:N)"
+
+    STUDENT {
+        bigint id PK
+        varchar name
     }
 
-    Student "1" <--> "0..*" Enrollment : @OneToMany / @ManyToOne\n(mappedBy = "student")
-    Module "1" <--> "0..*" Enrollment : @OneToMany / @ManyToOne\n(mappedBy = "module")
+    ENROLLMENT {
+        bigint id PK
+        bigint student_id FK
+        bigint module_id FK
+        date enrollment_date
+        double final_grade
+    }
+
+    MODULE {
+        bigint id PK
+        varchar code
+        varchar name
+    }
 ```
 
-#### 3.4.3 Relaciones Muchos a Muchos (`@ManyToMany`) y la Entidad Intermedia `Enrollment`
+#### 3.4.3 Relaciones Muchos a Muchos (`@ManyToMany`) y la necesidad de una tabla Intermedia `teacher_module`
 
 Cuando dos entidades se relacionan de forma múltiple (por ejemplo, `Teacher` e imparte múltiples `Module`, y un `Module` es impartido por múltiples `Teacher`), se utiliza `@ManyToMany` con `@JoinTable`:
 
@@ -550,32 +599,80 @@ public class Teacher {
 ```
 
 ```mermaid
-classDiagram
-    class Teacher {
-        +Long id
-        +String name
-        +List~Module~ modules
+erDiagram
+    TEACHER ||--o{ TEACHER_MODULE : "imparte"
+    MODULE ||--o{ TEACHER_MODULE : "pertenece"
+
+    TEACHER {
+        bigint id PK
+        varchar name
     }
-    class Module {
-        +Long id
-        +String code
-        +String name
+
+    TEACHER_MODULE {
+        bigint teacher_id FK
+        bigint module_id FK
     }
-    Teacher "0..*" <--> "0..*" Module : @ManyToMany\n(Tabla Unión: teacher_module)
+
+    MODULE {
+        bigint id PK
+        varchar code
+        varchar name
+    }
 ```
 
 *Nota del Dominio Académico:* En la relación entre `Student` y `Module` no se utiliza directamente `@ManyToMany`, porque la unión física (la matrícula) contiene atributos propios requeridos por el negocio (`enrollmentDate` y `finalGrade`). En su lugar, se descompone en dos relaciones `@ManyToOne` dentro de la entidad intermedia explicitada `Enrollment`.
 
 ---
 
-### 3.5 Resumen de Correspondencias y Buenas Prácticas de Mapeo
+### 3.5 Nota de Arquitectura Comparada: Mapeo de Entidades Java vs. Python
+
+Observa la equivalencia funcional entre la declaración de entidades en Java (JPA) y su representación equivalente en Python utilizando **SQLAlchemy** (Data Mapper) y **Django ORM** (Active Record):
+
+```java
+// JPA (Java)
+@Entity
+@Table(name = "student")
+public class Student {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+}
+```
+
+```python
+# SQLAlchemy (Python - Data Mapper)
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import declarative_base
+
+Base = declarative_base()
+
+class Student(Base):
+    __tablename__ = 'student'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String, nullable=False, unique=True)
+```
+
+```python
+# Django ORM (Python - Active Record)
+from django.db import models
+
+class Student(models.Model):
+    email = models.EmailField(unique=True, null=False)
+```
+
+---
+
+### 3.6 Resumen de Correspondencias y Buenas Prácticas de Mapeo
 
 | Tipo de Relación | Cardinalidad Académica | Representación en Base de Datos |
 | :--- | :--- | :--- |
-| **Uno a Uno (`@OneToOne`)** | Estudiante $\leftrightarrow$ Perfil | Columna con FK `profile_id` en la tabla `student` |
-| **Uno a Muchos (`@OneToMany`)** | Estudiante $\rightarrow$ Matrículas | La FK reside en el extremo hijo (`student_id` en `enrollment`) |
-| **Muchos a Uno (`@ManyToOne`)** | Matrícula $\rightarrow$ Módulo | Columna con FK `module_id` en la tabla `enrollment` |
-| **Muchos a Muchos (`@ManyToMany`)** | Profesor $\leftrightarrow$ Módulo | Tabla de unión intermedia `teacher_module` (`teacher_id`, `module_id`) |
+| **Uno a Uno (`@OneToOne`)** | Estudiante $\\leftrightarrow$ Perfil | Columna con FK `profile_id` en la tabla `student` |
+| **Uno a Muchos (`@OneToMany`)** | Estudiante $\\rightarrow$ Matrículas | La FK reside en el extremo hijo (`student_id` en `enrollment`) |
+| **Muchos a Uno (`@ManyToOne`)** | Matrícula $\\rightarrow$ Módulo | Columna con FK `module_id` en la tabla `enrollment` |
+| **Muchos a Muchos (`@ManyToMany`)** | Profesor $\\leftrightarrow$ Módulo | Tabla de unión intermedia `teacher_module` (`teacher_id`, `module_id`) |
 
 **Buenas Prácticas Obligatorias:**
 - Utilizar siempre tipos envoltorio Java (`Long`, `Integer`, `Double`) en lugar de primitivos para permitir valores nulos en columnas opcionales.
@@ -589,6 +686,14 @@ classDiagram
 ### 4.1 Concepto e Infraestructura de `JpaRepository`
 
 En Spring Data JPA, un **repositorio** es una interfaz declarativa que centraliza las operaciones de acceso a datos sobre una entidad específica. Para construir un repositorio, basta con definir una interfaz que extienda `JpaRepository<Entidad, TipoId>`:
+
+```mermaid
+graph BT
+    SR[StudentRepository] --> JR[JpaRepository]
+    JR --> PASR[PagingAndSortingRepository]
+    PASR --> CR[CrudRepository]
+    CR --> R[Repository]
+```
 
 ```java
 package com.edu.aad.repository;
@@ -755,7 +860,7 @@ En JPA, cuando se invocan métodos que modifican el estado de la base de datos d
 
 ### 5.2 Uso Práctico de `@Transactional` en la Capa de Servicio
 
-La anotación `@Transactional` de Spring indica que la ejecución del método debe ser envuelta por un proxy transaccional. Al ingresar al método se inicia la transacción; al salir con éxito se ejecuta el `commit`, y si se lanza una excepción no controlada (`RuntimeException`), se ejecuta automáticamente el `rollback`.
+La anotación `@Transactional` de Spring indica que la ejecución del método debe ser envuelta por un proxy transaccional (AOP). El siguiente flujo de secuencia ilustra cómo intercepta las llamadas, inicia la transacción, gestiona el commit o ejecuta el rollback en caso de error:
 
 ```mermaid
 sequenceDiagram
@@ -850,7 +955,40 @@ public List<Enrollment> getAllEnrollments() {
 
 ---
 
-### 5.4 Buenas Prácticas Transaccionales
+### 5.4 Nota de Arquitectura Comparada: Gestión Transaccional Java vs. Python
+
+En **Java con Spring**, las transacciones son **declarativas** a nivel de método mediante anotaciones e inyección AOP (`@Transactional`). En **Python**, la gestión transaccional se implementa típicamente mediante **gestores de contexto** (*context managers* con la palabra clave `with`):
+
+```java
+// Java - Declarativo con AOP Proxy
+@Transactional
+public void matricularAlumno(Long idAlumno, Long idModulo) {
+    // Operaciones atómicas automáticas
+}
+```
+
+```python
+# Python - Gestor de contexto explícito en SQLAlchemy
+from sqlalchemy.orm import Session
+
+def matricular_alumno(session: Session, id_alumno: int, id_modulo: int):
+    with session.begin(): # Commit automático al salir, rollback si hay excepción
+        enrollment = Enrollment(student_id=id_alumno, module_id=id_modulo)
+        session.add(enrollment)
+```
+
+```python
+# Python - Gestor de contexto atómico en Django ORM
+from django.db import transaction
+
+@transaction.atomic # O bien: with transaction.atomic():
+def matricular_alumno(id_alumno, id_modulo):
+    Enrollment.objects.create(student_id=id_alumno, module_id=id_modulo)
+```
+
+---
+
+### 5.5 Buenas Prácticas Transaccionales
 
 1. Ubicar la anotación `@Transactional` exclusivamente en la **capa de servicio (`@Service`)**, nunca en controladores REST ni en la capa de persistencia.
 2. Asegurar que las llamadas a métodos `@Transactional` se realicen desde clases externas para garantizar que sean interceptadas por el proxy AOP de Spring.
@@ -985,7 +1123,18 @@ sequenceDiagram
 
 ---
 
-### 7.2 Captura y Manejo de `ConstraintViolationException`
+### 7.2 Captura y Tubería de Validación `ConstraintViolationException`
+
+El siguiente esquema de flujo muestra el comportamiento del sistema cuando se intenta persistir un objeto que incumple las restricciones de Bean Validation:
+
+```mermaid
+graph TD
+    A[Invocación save entity] --> B{Validación Bean Validation}
+    B -- Inválido --> C[Lanza ConstraintViolationException]
+    C --> D[Rollback Inmediato sin SQL DML]
+    B -- Válido --> E[Sincronización con Contexto de Persistencia]
+    E --> F[SQL INSERT/UPDATE a Base de Datos]
+```
 
 Cuando se intenta guardar o actualizar una entidad que incumple alguna regla de validación, la llamada a `repository.save()` lanza automáticamente una excepción del tipo `ConstraintViolationException`. La transacción se interrumpe inmediatamente y no se ejecuta ninguna instrucción DML en la base de datos.
 
@@ -1099,30 +1248,27 @@ Esta información permite verificar la coincidencia entre los valores pasados en
 
 El **problema N+1** se produce cuando se recupera una lista de $N$ entidades y, posteriormente, al iterar sobre ellas para acceder a una relación configurada con carga perezosa (`LAZY`), Hibernate ejecuta **una consulta adicional por cada elemento de la lista**, totalizando $N + 1$ consultas a la base de datos.
 
+El siguiente diagrama de secuencia contrapone la ineficiencia de ejecutar N+1 consultas frente a la optimización mediante `JOIN FETCH`:
+
 ```mermaid
 sequenceDiagram
     autonumber
-    actor App as Aplicación
-    participant Hib as Hibernate / Repositorio
-    participant DB as PostgreSQL
-
-    Note over App, DB: CASO 1: Ineficiencia del Problema N+1 (Sin JOIN FETCH)
-    App->>Hib: findAll()
-    Hib->>DB: SELECT * FROM student; (1 consulta)
-    DB-->>Hib: Retorna N estudiantes
+    actor App as Aplicación Java
+    participant DB as Base de Datos PostgreSQL
     
-    loop Para cada uno de los N estudiantes
-        App->>Hib: student.getEnrollments()
-        Hib->>DB: SELECT * FROM enrollment WHERE student_id = ?; (N consultas)
-        DB-->>Hib: Retorna matrículas
+    rect rgb(255, 230, 230)
+        note over App, DB: Problema N+1 (Inesperado e Ineficiente)
+        App->>DB: 1. SELECT * FROM student (Recupera N alumnos)
+        loop Por cada alumno (N veces)
+            App->>DB: SELECT * FROM enrollment WHERE student_id = ?
+        end
     end
-    Note over App, DB: Total: 1 + N consultas a la base de datos (Ineficiente)
-
-    Note over App, DB: CASO 2: Solución Optimizada con FETCH JOIN
-    App->>Hib: findAllStudentsWithEnrollments()
-    Hib->>DB: SELECT DISTINCT s FROM Student s JOIN FETCH s.enrollments; (1 consulta)
-    DB-->>Hib: Retorna todos los estudiantes con sus matrículas en una sola respuesta
-    Note over App, DB: Total: 1 sola consulta eficiente
+    
+    rect rgb(230, 255, 230)
+        note over App, DB: Solución Optimizada con JOIN FETCH
+        App->>DB: 1. SELECT s FROM Student s JOIN FETCH s.enrollments
+        DB-->>App: Devuelve Alumnos y Matrículas en 1 Sola Consulta SQL
+    end
 ```
 
 **Solución mediante Fetch Join en JPQL:**
@@ -1140,33 +1286,27 @@ Al utilizar `JOIN FETCH`, Hibernate genera una única consulta `INNER JOIN` o `L
 
 ---
 
+### 8.4 Nota de Arquitectura Comparada: Solución del Problema N+1 en Python
+
+El problema N+1 es una ineficiencia universal en todas las herramientas ORM indiferentemente del lenguaje. Observa cómo se resuelve en Python de forma análoga al `JOIN FETCH` de JPA:
+
+* **En JPA / Hibernate (Java):**
+  Se resuelve explícitamente en la consulta JPQL con `JOIN FETCH s.enrollments` o mediante anotaciones `@EntityGraph`.
+* **En SQLAlchemy (Python):**
+  Se especifica en la consulta mediante la opción `joinedload()` o `selectinload()`:
+  ```python
+  from sqlalchemy.orm import joinedload
+  students = session.query(Student).options(joinedload(Student.enrollments)).all()
+  ```
+* **En Django ORM (Python):**
+  Se emplean los métodos `select_related()` (para relaciones de uno a uno / muchos a uno) y `prefetch_related()` (para relaciones de uno a muchos / muchos a muchos):
+  ```python
+  students = Student.objects.prefetch_related('enrollment_set').all()
+  ```
+
+---
+
 ## 9. Síntesis y Buenas Prácticas para el Desarrollo con Spring Data JPA
-
-```mermaid
-graph TD
-    A[Buenas Prácticas en JPA & Spring Data] --> B[1. Modelado de Entidades]
-    A --> C[2. Repositorios Declarativos]
-    A --> D[3. Gestión Transaccional]
-    A --> E[4. Validaciones & Excepciones]
-    A --> F[5. Optimización & Logs]
-
-    B --> B1[Constructores vacíos & Tipos Envoltorio]
-    B --> B2[Evitar recurrencias en toString/equals/hashCode]
-    B --> B3[Configurar FetchType.LAZY en relaciones N:1 y 1:1]
-
-    C --> C1[Extender de JpaRepository]
-    C --> C2[Consultas derivadas para filtros simples]
-    C --> C3[@Query con JPQL para operaciones complejas]
-
-    D --> D1[@Transactional en Capa de Servicio @Service]
-    D --> D2[readOnly = true en consultas de lectura]
-
-    E --> E1[Anotaciones Jakarta Bean Validation]
-    E --> E2[Excepciones de Dominio Personalizadas]
-
-    F --> F1[Monitorear org.hibernate.SQL en DEBUG]
-    F --> F2[Resolver N+1 con JOIN FETCH o EntityGraph]
-```
 
 1. **Definición de Entidades:**
    - Asegurar siempre un constructor vacío y utilizar tipos de datos objeto (`Long`, `Integer`, `Double`).
@@ -1182,3 +1322,45 @@ graph TD
    - Lanzar excepciones de dominio personalizadas desde la capa de servicio al no encontrar datos.
 5. **Depuración:**
    - Activar los logs de Hibernate (`org.hibernate.SQL: DEBUG`) en entorno de desarrollo local.
+
+
+```mermaid
+graph TB
+    subgraph C1 ["1. Persistencia & Repositorios"]
+        direction TB
+        subgraph P1 ["Definición de Entidades"]
+            direction TB
+            A1["Constructor vacío & Tipos objeto (Long, Integer, Double)"]
+            A2["Evitar referencias circulares en toString(), equals() y hashCode()"]
+        end
+        subgraph P2 ["Uso de Repositorios"]
+            direction TB
+            B1["Extender de JpaRepository & Consultas derivadas"]
+            B2["@Query con JPQL para operaciones complejas o JOIN FETCH"]
+        end
+    end
+
+    subgraph C2 ["2. Servicios & Validaciones"]
+        direction TB
+        subgraph P3 ["Gestión Transaccional"]
+            direction TB
+            C1_1["@Transactional obligatorio en la capa de Servicio (@Service)"]
+            C2_1["readOnly = true en métodos de lectura"]
+        end
+        subgraph P4 ["Validación e Integridad"]
+            direction TB
+            D1["Anotaciones Jakarta Bean Validation (@NotBlank, @NotNull, @Email)"]
+            D2["Excepciones de dominio personalizadas al no hallar datos"]
+        end
+    end
+
+    subgraph C3 ["3. Diagnóstico & Depuración"]
+        direction TB
+        subgraph P5 ["Depuración"]
+            direction TB
+            E1_1["Activar logs org.hibernate.SQL: DEBUG en desarrollo local"]
+        end
+    end
+
+    C1 ~~~ C2 ~~~ C3
+```
