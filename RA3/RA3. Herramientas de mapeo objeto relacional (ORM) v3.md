@@ -1325,27 +1325,42 @@ El problema N+1 es una ineficiencia universal en todas las herramientas ORM indi
 
 
 ```mermaid
-graph TD
-    A["Buenas Prácticas en JPA & Spring Data"] --> B["1. Modelado de Entidades"]
-    A --> C["2. Repositorios Declarativos"]
-    A --> D["3. Gestión Transaccional"]
-    A --> E["4. Validaciones & Excepciones"]
-    A --> F["5. Optimización & Logs"]
+graph TB
+    subgraph C1 ["1. Persistencia & Repositorios"]
+        direction TB
+        subgraph P1 ["Definición de Entidades"]
+            direction TB
+            A1["Constructor vacío & Tipos objeto (Long, Integer, Double)"]
+            A2["Evitar referencias circulares en toString(), equals() y hashCode()"]
+        end
+        subgraph P2 ["Uso de Repositorios"]
+            direction TB
+            B1["Extender de JpaRepository & Consultas derivadas"]
+            B2["@Query con JPQL para operaciones complejas o JOIN FETCH"]
+        end
+    end
 
-    B --> B1["Constructores vacíos & Tipos Envoltorio"]
-    B --> B2["Evitar recurrencias en toString/equals/hashCode"]
-    B --> B3["Configurar FetchType.LAZY en relaciones N:1 y 1:1"]
+    subgraph C2 ["2. Servicios & Validaciones"]
+        direction TB
+        subgraph P3 ["Gestión Transaccional"]
+            direction TB
+            C1_1["@Transactional obligatorio en la capa de Servicio (@Service)"]
+            C2_1["readOnly = true en métodos de lectura"]
+        end
+        subgraph P4 ["Validación e Integridad"]
+            direction TB
+            D1["Anotaciones Jakarta Bean Validation (@NotBlank, @NotNull, @Email)"]
+            D2["Excepciones de dominio personalizadas al no hallar datos"]
+        end
+    end
 
-    C --> C1["Extender de JpaRepository"]
-    C --> C2["Consultas derivadas para filtros simples"]
-    C --> C3["@Query con JPQL para operaciones complejas"]
+    subgraph C3 ["3. Diagnóstico & Depuración"]
+        direction TB
+        subgraph P5 ["Depuración"]
+            direction TB
+            E1_1["Activar logs org.hibernate.SQL: DEBUG en desarrollo local"]
+        end
+    end
 
-    D --> D1["@Transactional en Capa de Servicio (@Service)"]
-    D --> D2["readOnly = true en consultas de lectura"]
-
-    E --> E1["Anotaciones Jakarta Bean Validation"]
-    E --> E2["Excepciones de Dominio Personalizadas"]
-
-    F --> F1["Monitorear org.hibernate.SQL en DEBUG"]
-    F --> F2["Resolver N+1 con JOIN FETCH o EntityGraph"]
+    C1 ~~~ C2 ~~~ C3
 ```
