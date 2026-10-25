@@ -572,7 +572,7 @@ erDiagram
     }
 ```
 
-#### 3.4.3 Relaciones Muchos a Muchos (`@ManyToMany`) y la Entidad Intermedia `Enrollment`
+#### 3.4.3 Relaciones Muchos a Muchos (`@ManyToMany`) y la necesidad de una tabla Intermedia `teacher_module`
 
 Cuando dos entidades se relacionan de forma múltiple (por ejemplo, `Teacher` e imparte múltiples `Module`, y un `Module` es impartido por múltiples `Teacher`), se utiliza `@ManyToMany` con `@JoinTable`:
 
