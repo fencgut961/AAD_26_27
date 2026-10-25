@@ -410,39 +410,48 @@ La anotación `@GeneratedValue` especifica cómo se asignan los valores de las c
 En el dominio académico del curso (Alumnos, Perfiles, Módulos, Matrículas y Profesores), la estructura de relaciones entre entidades se modela mediante el siguiente diagrama de clases y cardinalidades:
 
 ```mermaid
-classDiagram
-    class Student {
-        +Long id
-        +String nif
-        +String name
-        +String email
-        +String course
-    }
-    class Profile {
-        +Long id
-        +String address
-        +String phone
-    }
-    class Enrollment {
-        +Long id
-        +LocalDate enrollmentDate
-        +Double finalGrade
-    }
-    class Module {
-        +Long id
-        +String code
-        +String name
-    }
-    class Teacher {
-        +Long id
-        +String name
+erDiagram
+    STUDENT ||--o| PROFILE : "1:1 tiene"
+    STUDENT ||--o{ ENROLLMENT : "1:N realiza"
+    MODULE ||--o{ ENROLLMENT : "1:N contiene"
+    TEACHER }|--|{ MODULE : "N:M imparte"
+
+    STUDENT {
+        bigint id_student PK
+        string nif UK
+        string name
+        string email UK
+        string course
     }
 
-    Student "1" -- "1" Profile : profile (@OneToOne)
-    Student "1" -- "N" Enrollment : enrollments (@OneToMany)
-    Module "1" -- "N" Enrollment : enrollments (@OneToMany)
-    Teacher "M" -- "N" Module : modules (@ManyToMany)
+    PROFILE {
+        bigint id PK
+        string address
+        string phone
+    }
+
+    ENROLLMENT {
+        bigint id PK
+        bigint student_id FK
+        bigint module_id FK
+        date enrollment_date
+        double final_grade
+    }
+
+    MODULE {
+        bigint id PK
+        string code UK
+        string name
+        int hours
+    }
+
+    TEACHER {
+        bigint id PK
+        string name
+        string email
+    }
 ```
+
 
 #### 3.4.1 Relación Uno a Uno (`@OneToOne`)
 
@@ -491,7 +500,7 @@ classDiagram
         +String address
         +String phone
     }
-    Student "1" --> "1" Profile : @OneToOne\n(FK: profile_id)
+    Student "1" --> "1" Profile : @OneToOne <br/>(FK: profile_id)
 ```
 
 #### 3.4.2 Relaciones Uno a Muchos y Muchos a Uno (`@OneToMany` / `@ManyToOne`)
