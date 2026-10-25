@@ -866,22 +866,27 @@ La anotación `@Transactional` de Spring indica que la ejecución del método de
 sequenceDiagram
     autonumber
     actor Client as Cliente / Controller
-    participant Proxy as Spring AOP Proxy
+    participant Proxy as Spring AOP Proxy (@Transactional)
     participant Service as EnrollmentService
-    participant EM as EntityManager / DB
+    participant Repo as EnrollmentRepository
+    participant DB as PostgreSQL
+
+    Client->>Proxy: enrollStudentWithErrorSimulation(studentId, moduleId)
+    Proxy->>DB: BEGIN TRANSACTION
+    Proxy->>Service: Invoca Método Real
+    Service->>Repo: save(enrollment)
+    Repo->>DB: INSERT INTO enrollment ... (En memoria de transacción)
     
-    Client->>Proxy: enrollStudent(studentId, moduleId)
-    Proxy->>EM: Iniciar Transacción (BEGIN)
-    Proxy->>Service: Invocación del método real
-    Service->>EM: findById() & save(enrollment)
-    alt Excepción Runtime
+    Alt Excepción de Negocio Lanza RuntimeException
         Service-->>Proxy: Lanza RuntimeException
-        Proxy->>EM: Ejecutar ROLLBACK
+        Proxy->>DB: ROLLBACK TRANSACTION
+        Note over DB: Se revierten los cambios.<br/>No se inserta ninguna fila.
         Proxy-->>Client: Propaga Excepción
-    else Ejecución Exitosa
-        Service-->>Proxy: Retorna Resultado OK
-        Proxy->>EM: Ejecutar COMMIT & Flush
-        Proxy-->>Client: Transacción Completada
+    Else Ejecución Exitosa
+        Service-->>Proxy: Retorna Resultado
+        Proxy->>DB: COMMIT TRANSACTION
+        Note over DB: Cambios confirmados físicamente.
+        Proxy-->>Client: Retorna Éxito
     end
 ```
 
