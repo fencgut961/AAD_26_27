@@ -608,7 +608,8 @@ classDiagram
         +String code
         +String name
     }
-    Teacher "0..*" <--> "0..*" Module : @ManyToMany\n(Tabla Unión: teacher_module)
+    Teacher "0..*" <--> "0..*" Module : @ManyToMany
+    note for Teacher "Tabla Unión: teacher_module"
 ```
 
 *Nota del Dominio Académico:* En la relación entre `Student` y `Module` no se utiliza directamente `@ManyToMany`, porque la unión física (la matrícula) contiene atributos propios requeridos por el negocio (`enrollmentDate` y `finalGrade`). En su lugar, se descompone en dos relaciones `@ManyToOne` dentro de la entidad intermedia explicitada `Enrollment`.
