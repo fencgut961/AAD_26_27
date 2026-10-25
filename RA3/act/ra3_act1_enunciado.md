@@ -1,12 +1,12 @@
-### ra3_act3_1: AadTex Enterprise Refactoring (Spring Data JPA, Hibernate & @Transactional)
+# ra3_act3_1: AadTex Enterprise Refactoring (Spring Data JPA, Hibernate & @Transactional)
 **Módulo:** Acceso a Datos (AAD)  
 **Unidad Didáctica:** UD03 – Herramientas de Mapeo Objeto-Relacional (RA3)  
 **Entregables:** Repositorio **GitHub** refactorizado, archivo **ra3_act3_1.zip** subido a Moodle y defensa técnica presencial.
 
 ---
 
-#### 1. Contexto de Negocio Empresarial (Caso AadTex v4.0 - Refactorización a JPA/Hibernate)
-##### ¿Cuál es el problema real que estamos resolviendo?
+## 1. Contexto de Negocio Empresarial (Caso AadTex v4.0 - Refactorización a JPA/Hibernate)
+### ¿Cuál es el problema real que estamos resolviendo?
 Tras migrar el proyecto **AadTex** a Spring JDBC en la `ra2_act2` utilizando `JdbcTemplate` y `SimpleJdbcCall`, la Sede Central ha identificado que la aplicación sigue arrastrando acoplamiento y código repetitivo:
 1. **Mantenimiento manual de esquemas (DDL):** La estructura relacional debe crearse y mantenerse manualmente en scripts SQL (`schema.sql`).
 2. **Consultas SQL hardcodeadas y RowMappers:** Los repositorios continúan llenos de consultas SQL en texto plano y transformaciones manuales mediante `RowMapper`.
@@ -22,7 +22,7 @@ En esta tercera práctica, el alumno refactorizará por completo el proyecto **A
 
 ---
 
-#### 2. Objetivos de Ingeniería de Software (RA3 Core & Spring Data JPA)
+## 2. Objetivos de Ingeniería de Software (RA3 Core & Spring Data JPA)
 * [x] **Mapeo de Entidades Relacionales:** Modelado JPA de `Store`, `Product`, `Sale` y `SaleDetail` con claves primarias autonuméricas y relaciones `@OneToMany` / `@ManyToOne`.
 * [x] **Validación Declarativa de Integridad:** Aplicación de anotaciones Jakarta Bean Validation (`@NotBlank`, `@NotNull`, `@Min`, `@DecimalMin`).
 * [x] **Eliminación de Fontanería SQL (Clean Code):** Supresión total de `schema.sql`, `JdbcTemplate`, `RowMapper` y `SimpleJdbcCall`.
@@ -33,7 +33,7 @@ En esta tercera práctica, el alumno refactorizará por completo el proyecto **A
 
 ---
 
-#### 3. Estructura del Proyecto Refactorizado
+## 3. Estructura del Proyecto Refactorizado
 El proyecto debe eliminar el código SQL manual y organizar las clases según el estándar JPA de Spring Boot:
 
 ```text
@@ -84,9 +84,9 @@ src/main/resources/
 
 ---
 
-#### 5. Requisitos de Refactorización Paso a Paso
+## 5. Requisitos de Refactorización Paso a Paso
 
-##### 📍 Paso 1: Configuración de `application.yml`
+### 📍 Paso 1: Configuración de `application.yml`
 1. Eliminar la propiedad `spring.sql.init.mode` y borrar el archivo `schema.sql`.
 2. Configurar la autogeneración del esquema con Hibernate y la visualización formateada de las consultas SQL:
 
@@ -116,7 +116,7 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 ```
 
-##### 📍 Paso 2: Conversión del Modelo a Entidades JPA con Bean Validation
+### 📍 Paso 2: Conversión del Modelo a Entidades JPA con Bean Validation
 El alumno deberá sustituir los Records de Java por clases de entidad completas:
 1. **`Store`**: Anotar con `@Entity` y `@Table(name = "tienda")`. Añadir validaciones `@NotBlank` en código y nombre.
 2. **`Product`**: Anotar con `@Entity` y `@Table(name = "producto")`. El SKU debe ser único (`unique = true`) y no nulo. El precio debe ser mayor que cero (`@DecimalMin`).
@@ -124,7 +124,7 @@ El alumno deberá sustituir los Records de Java por clases de entidad completas:
 4. **`SaleDetail`**: Anotar con `@Entity` y `@Table(name = "detalle_venta")`. Debe incluir las relaciones `@ManyToOne` con `Sale` y con `Product`, además de la cantidad (`@Min(1)`) y el precio unitario.
 5. **Requisito obligatorio**: Todas las entidades deben contar con un constructor sin argumentos (`@NoArgsConstructor`), getters y setters (`@Getter`, `@Setter`), y evitar referencias circulares en los métodos `toString()`, `equals()` y `hashCode()`.
 
-##### 📍 Paso 3: Definición de Repositorios Declarativos (`JpaRepository`)
+### 📍 Paso 3: Definición de Repositorios Declarativos (`JpaRepository`)
 El alumno deberá crear las interfaces de repositorio heredando de `JpaRepository`:
 1. **`StoreRepository`**: Extender `JpaRepository<Store, Integer>`. Añadir consulta derivada `findByCode(String code)`.
 2. **`ProductRepository`**: Extender `JpaRepository<Product, Integer>`. Añadir consulta derivada `findBySku(String sku)`.
@@ -132,7 +132,7 @@ El alumno deberá crear las interfaces de repositorio heredando de `JpaRepositor
    - Implementar consulta JPQL optimizada con `JOIN FETCH` para recuperar una venta con sus detalles y productos en una sola consulta evitando el problema N+1.
    - Implementar consulta JPQL para calcular la suma total de ventas por tienda.
 
-##### 📍 Paso 4: Capa de Servicio y Gestión Transaccional Declarativa
+### 📍 Paso 4: Capa de Servicio y Gestión Transaccional Declarativa
 Refactorizar los servicios (`StoreService`, `ProductService`, `SaleService`):
 1. Inyectar los repositorios JPA mediante constructor (`@RequiredArgsConstructor` de Lombok).
 2. En `SaleService.processSale(...)`, recibir la petición de venta, asociar la tienda y sus detalles a la entidad `Sale`, y persistirla.
@@ -141,7 +141,7 @@ Refactorizar los servicios (`StoreService`, `ProductService`, `SaleService`):
 
 ---
 
-#### 6. Adaptación de las Suites de Pruebas TDD por parte del Alumno
+# 6. Adaptación de las Suites de Pruebas TDD por parte del Alumno
 ⚠️ **Instrucciones para la evaluación**: El alumno **DEBE ADAPTAR Y ACTUALIZAR** las dos suites de prueba JUnit 5 heredadas del proyecto RA2 (`AadTexRepositoriesTest.java` y `AadTexServicesTest.java`) para ajustarlas al comportamiento del nuevo motor Spring Data JPA:
 
 1. **Adaptar `AadTexRepositoriesTest.java`**:
@@ -157,7 +157,7 @@ Refactorizar los servicios (`StoreService`, `ProductService`, `SaleService`):
 
 ---
 
-#### 7. Criterios de Evaluación y Entregables
+# 7. Criterios de Evaluación y Entregables
 1. **Código Limpio y Arquitectura (30%):** Supresión total de JDBC manual, `schema.sql` y `RowMapper`. Correcta estructuración en entidades, repositorios y servicios.
 2. **Modelado JPA y Bean Validation (30%):** Configuración precisa de relaciones (`@ManyToOne`, `@OneToMany`), anotaciones de validación y autogeneración DDL con Hibernate.
 3. **Consultas JPQL y Rendimiento (20%):** Correcta resolución del problema N+1 mediante `JOIN FETCH` en las consultas de ventas.
