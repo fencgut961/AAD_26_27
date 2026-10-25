@@ -597,19 +597,25 @@ public class Teacher {
 ```
 
 ```mermaid
-classDiagram
-    class Teacher {
-        +Long id
-        +String name
-        +List~Module~ modules
+erDiagram
+    TEACHER ||--o{ TEACHER_MODULE : "imparte"
+    MODULE ||--o{ TEACHER_MODULE : "pertenece"
+
+    TEACHER {
+        bigint id PK
+        varchar name
     }
-    class Module {
-        +Long id
-        +String code
-        +String name
+
+    TEACHER_MODULE {
+        bigint teacher_id FK
+        bigint module_id FK
     }
-    Teacher "0..*" <--> "0..*" Module : @ManyToMany
-    note for Teacher "Tabla Unión: teacher_module"
+
+    MODULE {
+        bigint id PK
+        varchar code
+        varchar name
+    }
 ```
 
 *Nota del Dominio Académico:* En la relación entre `Student` y `Module` no se utiliza directamente `@ManyToMany`, porque la unión física (la matrícula) contiene atributos propios requeridos por el negocio (`enrollmentDate` y `finalGrade`). En su lugar, se descompone en dos relaciones `@ManyToOne` dentro de la entidad intermedia explicitada `Enrollment`.
