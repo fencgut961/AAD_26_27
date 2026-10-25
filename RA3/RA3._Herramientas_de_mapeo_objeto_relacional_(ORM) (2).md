@@ -47,6 +47,24 @@ Student student = new Student("Ana", "ana@example.com");
 studentRepository.save(student);
 ```
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Dev as Desarrollador
+    participant Repo as StudentRepository (Spring Data JPA)
+    participant EM as EntityManager / Contexto Persistencia
+    participant Hib as Hibernate Engine
+    participant DB as PostgreSQL
+
+    Dev->>Repo: save(student)
+    Repo->>EM: persist(student)
+    Note over EM: Asigna estado MANAGED<br/>y rastrea cambios
+    EM->>Hib: Sincronización (Flush)
+    Hib->>DB: INSERT INTO student (nif, name, email) VALUES (?, ?, ?)
+    DB-->>Hib: OK (ID Generado / Serial)
+    Hib-->>Dev: Entidad Persistida con ID
+```
+
 ---
 
 ### 1.2 El Papel de Hibernate como Proveedor de Persistencia
