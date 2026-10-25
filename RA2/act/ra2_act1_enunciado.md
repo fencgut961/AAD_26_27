@@ -1,4 +1,4 @@
-# ra2_act1: AadTex Store Persistence Engine (JDBC Puro - TDD)
+# ra2_act1: AadTex Store Persistence Engine (JDBC + TDD)
 
 **Módulo:** Acceso a Datos (AAD)  
 **Unidad Didáctica:** RA2 – Manejo de Conectores
@@ -9,20 +9,20 @@
 
 ## 1. Contexto de Negocio Empresarial (Caso AadTex v3.0 - Sede Central)
 
-### ❓ ¿Cuál es el problema real que estamos resolviendo?
+### ¿Cuál es el problema real que estamos resolviendo?
 Tras desplegar con éxito el motor de ingestión y distribución de ficheros en el RA1 (**AadTex App 1 y App 2**), la multinacional textil **AadTex** evoluciona la arquitectura de la Sede Central. La dirección técnica exige **abandonar los volcados planos en disco e instaurar un motor relacional centralizado en PostgreSQL (`aadtex_db`)** para consolidar los datos operativos de sus tiendas globales y garantizar la integridad ACID de las ventas.
 
-En esta primera fase, se requiere construir el **motor de persistencia a bajo nivel (JDBC Puro)** mediante **TDD (Test-Driven Development)**. El objetivo pedagógico es dominar la gestión explícita de conexiones, el cargador de scripts DDL, la prevención de inyección SQL mediante consultas parametrizadas, la invocación de funciones almacenadas y la coordinación transaccional manual (`commit`/`rollback`) respondiendo a una batería de pruebas automatizada real.
+En esta primera fase, se requiere construir el **motor de persistencia a bajo nivel (JDBC)** mediante **TDD (Test-Driven Development)**. El objetivo pedagógico es dominar la gestión explícita de conexiones, el cargador de scripts DDL, la prevención de inyección SQL mediante consultas parametrizadas, la invocación de funciones almacenadas y la coordinación transaccional manual (`commit`/`rollback`) respondiendo a una batería de pruebas automatizada real.
 
 ---
 
 ## 2. Objetivos de Ingeniería de Software (RA2 Core)
 
 * [x] **Infraestructura con Docker Compose:** Despliegue e inicialización del contenedor PostgreSQL (`aadtex_postgres`).
-* [x] **Driver de Conexión Manual (`PostgresqlDriver`):** Carga e inicialización de scripts SQL (`01_schema.sql` y `02_procedures.sql`) mediante JDBC puro.
-* [x] **Modelado Inmutable con Java Records:** Definición de entidades inmutables (`Store`, `Product`, `Sale`, `SaleDetail`).
+* [x] **Driver de Conexión Manual (`PostgresqlDriver`):** Carga e inicialización de scripts SQL (`01_schema.sql` y `02_procedures.sql`) mediante JDBC .
+* [x] **Modelado:** Definición de entidades (`Store`, `Product`, `Sale`, `SaleDetail`).
 * [x] **Arquitectura en Capas:** Separación limpia de responsabilidades (`config`, `model`, `repository`, `service`).
-* [x] **Repositorios CRUD con JDBC Puro:** Implementación de consultas SQL parametrizadas con `PreparedStatement` y lectura con `ResultSet`.
+* [x] **Repositorios CRUD con JDBC:** Implementación de consultas SQL parametrizadas con `PreparedStatement` y lectura con `ResultSet`.
 * [x] **Invocación de Funciones PL/pgSQL:** Uso de `CallableStatement` para ejecutar la función de cálculo de ventas acumuladas por tienda.
 * [x] **Gestión Transaccional Manual (ACID):** Control de `setAutoCommit(false)`, `commit()` y `rollback()` al registrar ventas compuestas con sus líneas de detalle.
 * [x] **Desarrollo Guiado por Pruebas (TDD con JUnit 5):** Superación al 100% de la suite de pruebas unitarias y de integración proporcionada (`AadTexAssignmentTest`).
@@ -128,7 +128,7 @@ $$ LANGUAGE plpgsql;
 
 ### 📍 Paso 1: Infraestructura y Configuración (`docker-compose.yml` y `application.yml`)
 1. Configurar un contenedor con PostgreSQL 15 escuchando en el puerto `5432`.
-2. Base de datos: `aadtex_db`, usuario: `postgres`, contraseña: `1234`.
+2. Base de datos: `aadtex_db`, usuario: `aadtex_user`, contraseña: `aadtex_pass`.
 3. Especificar las credenciales en `src/main/resources/application.yml`.
 
 ### 📍 Paso 2: Gestor Manual de Conexión (`PostgresqlDriver.java`)
@@ -139,7 +139,7 @@ Implementar la clase encargada de:
 * Proporcionar métodos explícitos para iniciar transacción (`setAutoCommit(false)`), hacer `commit()` y realizar `rollback()`.
 
 ### 📍 Paso 3: Modelado con Java Records (`com.<usuario>.aad.model`)
-Definir las cuatro entidades inmutables del dominio:
+Definir las entidades del dominio:
 * `Store(Integer id, String code, String name, String country, String region)`
 * `Product(Integer id, String sku, String name, BigDecimal price)`
 * `Sale(Integer id, Integer storeId, LocalDateTime saleDate, BigDecimal total)`
@@ -550,6 +550,5 @@ public class AadTexServicesTest {
     }
 }
 ```
-
 
 ---

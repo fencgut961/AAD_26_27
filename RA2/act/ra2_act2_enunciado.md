@@ -8,7 +8,7 @@
 
 ## 1. Contexto de Negocio Empresarial (Caso AadTex v3.1 - Refactorización Empresarial)
 
-### ❓ ¿Cuál es el problema real que estamos resolviendo?
+### ¿Cuál es el problema real que estamos resolviendo?
 Tras implementar con éxito el motor de persistencia a bajo nivel con JDBC puro en la ra2_act1, el equipo de Arquitectura de Software de la Sede Central de **AadTex** exige **modernizar la base del código y eliminar la fontanería manual de infraestructura**.
 
 La gestión explícita de conexiones, la creación de `PreparedStatement`, el mapeo directo de `ResultSet` y el control imperativo de transacciones (`commit`/`rollback`) generan abundante código repetitivo (*boilerplate code*), dificultan el mantenimiento y aumentan el riesgo de fugas de recursos (*resource leaks*).
@@ -551,13 +551,3 @@ public class AadTexServicesTest {
 ```
 
 ---
-
-## 7. Rúbrica de Evaluación y Criterios (CEv)
-
-| Criterio de Evaluación | Ponderación | Descripción Detallada |
-| :--- | :---: | :--- |
-| **Limpieza de Código y Conexión (CEv a, b)** | **15%** | Eliminación total de `PostgresqlDriver`/`DatabaseProperties` y correcta autoconfiguración de `DataSource` e inicialización de `schema.sql`. |
-| **Refactorización con `JdbcTemplate` (CEv c, d)** | **30%** | Sustitución completa del código JDBC tradicional en todos los repositorios por `JdbcTemplate` y `RowMapper`s limpios. |
-| **Uso de `SimpleJdbcCall` (CEv e, f)** | **15%** | Correcta invocación de la función `calcular_total_ventas_tienda` usando `SimpleJdbcCall`. |
-| **Transacciones Declarativas `@Transactional` (CEv g, h)** | **25%** | Eliminación del control manual de transacciones e implementación de `@Transactional` en `SaleService` con comprobación de rollback. |
-| **Calidad de Código y TDD (CEv i, j, k)** | **15%** | Superación limpia de los tests en `AadTexRepositoriesTest` y `AadTexServicesTest`, estructura de paquetes y documentación `README.md`. |
