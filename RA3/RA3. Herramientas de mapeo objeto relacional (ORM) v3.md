@@ -1308,32 +1308,6 @@ El problema N+1 es una ineficiencia universal en todas las herramientas ORM indi
 
 ## 9. Síntesis y Buenas Prácticas para el Desarrollo con Spring Data JPA
 
-```mermaid
-graph TD
-    A[Buenas Prácticas en JPA & Spring Data] --> B[1. Modelado de Entidades]
-    A --> C[2. Repositorios Declarativos]
-    A --> D[3. Gestión Transaccional]
-    A --> E[4. Validaciones & Excepciones]
-    A --> F[5. Optimización & Logs]
-
-    B --> B1[Constructores vacíos & Tipos Envoltorio]
-    B --> B2[Evitar recurrencias en toString/equals/hashCode]
-    B --> B3[Configurar FetchType.LAZY en relaciones N:1 y 1:1]
-
-    C --> C1[Extender de JpaRepository]
-    C --> C2[Consultas derivadas para filtros simples]
-    C --> C3[@Query con JPQL para operaciones complejas]
-
-    D --> D1[@Transactional en Capa de Servicio @Service]
-    D --> D2[readOnly = true en consultas de lectura]
-
-    E --> E1[Anotaciones Jakarta Bean Validation]
-    E --> E2[Excepciones de Dominio Personalizadas]
-
-    F --> F1[Monitorear org.hibernate.SQL en DEBUG]
-    F --> F2[Resolver N+1 con JOIN FETCH o EntityGraph]
-```
-
 1. **Definición de Entidades:**
    - Asegurar siempre un constructor vacío y utilizar tipos de datos objeto (`Long`, `Integer`, `Double`).
    - Evitar referencias circulares en los métodos `toString()`, `equals()` y `hashCode()`.
@@ -1348,3 +1322,30 @@ graph TD
    - Lanzar excepciones de dominio personalizadas desde la capa de servicio al no encontrar datos.
 5. **Depuración:**
    - Activar los logs de Hibernate (`org.hibernate.SQL: DEBUG`) en entorno de desarrollo local.
+
+
+```mermaid
+graph TD
+    A["Buenas Prácticas en JPA & Spring Data"] --> B["1. Modelado de Entidades"]
+    A --> C["2. Repositorios Declarativos"]
+    A --> D["3. Gestión Transaccional"]
+    A --> E["4. Validaciones & Excepciones"]
+    A --> F["5. Optimización & Logs"]
+
+    B --> B1["Constructores vacíos & Tipos Envoltorio"]
+    B --> B2["Evitar recurrencias en toString/equals/hashCode"]
+    B --> B3["Configurar FetchType.LAZY en relaciones N:1 y 1:1"]
+
+    C --> C1["Extender de JpaRepository"]
+    C --> C2["Consultas derivadas para filtros simples"]
+    C --> C3["@Query con JPQL para operaciones complejas"]
+
+    D --> D1["@Transactional en Capa de Servicio (@Service)"]
+    D --> D2["readOnly = true en consultas de lectura"]
+
+    E --> E1["Anotaciones Jakarta Bean Validation"]
+    E --> E2["Excepciones de Dominio Personalizadas"]
+
+    F --> F1["Monitorear org.hibernate.SQL en DEBUG"]
+    F --> F2["Resolver N+1 con JOIN FETCH o EntityGraph"]
+```
