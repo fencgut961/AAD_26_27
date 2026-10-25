@@ -12,7 +12,7 @@ Tras migrar el proyecto **AadTex** a Spring JDBC en la `ra2_act2` utilizando `Jd
 2. **Consultas SQL hardcodeadas y RowMappers:** Los repositorios continúan llenos de consultas SQL en texto plano y transformaciones manuales mediante `RowMapper`.
 3. **Manejo explícito de claves foráneas:** Las relaciones entre tiendas, ventas, productos y detalles se gestionan mediante IDs enteros simples sin aprovechar el modelo de objetos.
 
-En esta tercera práctica, el alumno refactorizará por completo el proyecto **AadTex** sustituyendo la capa de acceso a datos por el estándar **Spring Data JPA y Hibernate (ORM)**:
+En esta práctica, el alumno refactorizará por completo el proyecto **AadTex** sustituyendo la capa de acceso a datos por el estándar **Spring Data JPA y Hibernate (ORM)**:
 
 * **Eliminación de `schema.sql` y DDL manual:** Delegar la creación y actualización de la estructura relacional en Hibernate a partir de las anotaciones JPA (`spring.jpa.hibernate.ddl-auto=create-drop`).
 * **Transformación a Entidades JPA:** Convertir los Java Records de dominio (`Store`, `Product`, `Sale`, `SaleDetail`) en clases de entidad anotadas con `@Entity`, `@Id`, `@GeneratedValue`, `@ManyToOne`, `@OneToMany` y reglas de validación de **Jakarta Bean Validation**.
