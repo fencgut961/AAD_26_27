@@ -489,19 +489,20 @@ public class Student {
 ```
 
 ```mermaid
-classDiagram
-    class Student {
-        +Long id
-        +String name
-        +Profile profile
+erDiagram
+    STUDENT ||--|| PROFILE : "1:1 (@OneToOne)"
+
+    STUDENT {
+        bigint id PK
+        varchar name
+        bigint profile_id FK
     }
-    class Profile {
-        +Long id
-        +String address
-        +String phone
+
+    PROFILE {
+        bigint id PK
+        varchar address
+        varchar phone
     }
-    Student "1" --> "1" Profile : @OneToOne
-    note for Student "FK: profile_id"
 ```
 
 #### 3.4.2 Relaciones Uno a Muchos y Muchos a Uno (`@OneToMany` / `@ManyToOne`)
@@ -547,27 +548,28 @@ public class Enrollment {
 ```
 
 ```mermaid
-classDiagram
-    class Student {
-        +Long id
-        +String name
-        +List~Enrollment~ enrollments
-    }
-    class Enrollment {
-        +Long id
-        +Student student
-        +Module module
-        +LocalDate enrollmentDate
-        +Double finalGrade
-    }
-    class Module {
-        +Long id
-        +String code
-        +String name
+erDiagram
+    STUDENT ||--o{ ENROLLMENT : "posee (1:N)"
+    MODULE ||--o{ ENROLLMENT : "contiene (1:N)"
+
+    STUDENT {
+        bigint id PK
+        varchar name
     }
 
-    Student "1" <--> "0..*" Enrollment : @OneToMany / @ManyToOne\n(mappedBy = "student")
-    Module "1" <--> "0..*" Enrollment : @OneToMany / @ManyToOne\n(mappedBy = "module")
+    ENROLLMENT {
+        bigint id PK
+        bigint student_id FK
+        bigint module_id FK
+        date enrollment_date
+        double final_grade
+    }
+
+    MODULE {
+        bigint id PK
+        varchar code
+        varchar name
+    }
 ```
 
 #### 3.4.3 Relaciones Muchos a Muchos (`@ManyToMany`) y la Entidad Intermedia `Enrollment`
