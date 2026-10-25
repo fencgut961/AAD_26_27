@@ -107,6 +107,31 @@ El ecosistema de persistencia basado en JPA está estructurado en torno a cinco 
 
 Spring Boot simplifica esta arquitectura al autoconfigurar la fábrica de gestores de entidades (`EntityManagerFactory`), la gestión de transacciones y el escaneo de entidades, permitiendo al desarrollador interactuar directamente mediante interfaces de repositorio.
 
+```mermaid
+graph LR
+    subgraph Spring Context
+        Repo[Spring Data Repositories]
+        TM[PlatformTransactionManager]
+    end
+
+    subgraph JPA Core
+        EMF[EntityManagerFactory]
+        EM[EntityManager]
+        PC[(Persistence Context / L1 Cache)]
+    end
+
+    subgraph ORM Provider
+        HIB[Hibernate ORM Engine]
+    end
+
+    Repo -->|Delega en| EM
+    TM -->|Gestión de límites| EM
+    EMF -->|Instancia| EM
+    EM -->|Administra| PC
+    EM -->|Usa| HIB
+    HIB -->|Ejecuta SQL via JDBC| DB[(PostgreSQL)]
+```
+
 ---
 
 ### 1.5 Nota de Arquitectura Comparada: Java vs. Python (JPA vs. SQLAlchemy / Django ORM)
