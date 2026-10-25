@@ -195,15 +195,24 @@ El contexto de persistencia gestiona los objetos Java a lo largo de un ciclo de 
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Transient: new Student()
+    [*] --> Transient: new Entity()
+    
     Transient --> Managed: persist() / save()
+    
     Managed --> Detached: detach() / clear() / close()
     Detached --> Managed: merge()
+    
     Managed --> Removed: remove() / delete()
-    Removed --> [*]: commit() (Ejecución DELETE SQL)
-    Managed --> Managed: dirty checking / flush()
+    Removed --> Transient: flush() / commit() (Borrado físico en BD)
+    
+    Managed --> Managed: Modificación de atributos (Dirty Checking)
+    
+    note right of Managed
+        Registrado en el Contexto de Persistencia.
+        Cualquier cambio se sincronizará automáticamente
+        en la base de datos mediante el proceso de Flush.
+    end note
 ```
-
 ---
 
 ### 2.3 Integración con Spring Boot, HikariCP y Pooling de Conexiones
