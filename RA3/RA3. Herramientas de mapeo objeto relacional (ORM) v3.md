@@ -500,7 +500,7 @@ classDiagram
         +String address
         +String phone
     }
-    Student "1" --> "1" Profile : @OneToOne <br/>(FK: profile_id)
+    Student "1" --> "1" Profile : "@OneToOne (FK: profile_id)"
 ```
 
 #### 3.4.2 Relaciones Uno a Muchos y Muchos a Uno (`@OneToMany` / `@ManyToOne`)
