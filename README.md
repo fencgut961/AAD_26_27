@@ -38,7 +38,7 @@ Este repositorio organiza el trabajo del módulo siguiendo los **Resultados de A
 
 ---
 
-### RA3. Gestiona la persistencia de los datos identificando herramientas de mapeo objeto relacional (ORM) y desarrollando aplicaciones que las utilizan.
+### [RA3. Gestiona la persistencia de los datos identificando herramientas de mapeo objeto relacional (ORM) y desarrollando aplicaciones que las utilizan.](https://github.com/fencgut961/AAD_26_27/blob/main/RA3/ra3-herramientas-ORM.md)
 
 - **CEv a.** Se ha instalado la herramienta ORM.
 - **CEv b.** Se ha configurado la herramienta ORM.
