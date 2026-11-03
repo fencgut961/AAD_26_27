@@ -1,10 +1,10 @@
-package com.example.base.archetype;
+package com.example.layared.archetype;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class BaseArchetypeApplicationTests {
+class LayeredArchetypeApplicationTests {
 
 	@Test
 	void contextLoads() {

@@ -1,4 +1,4 @@
-package com.example.base.archetype.util;
+package com.example.layared.archetype.util;
 
 import lombok.experimental.UtilityClass;
 

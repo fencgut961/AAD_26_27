@@ -1,6 +1,4 @@
-package com.example.base.archetype.repository;
-
-import java.io.File;
+package com.example.layared.archetype.repository;
 
 public interface CrudRepository<T> {
 

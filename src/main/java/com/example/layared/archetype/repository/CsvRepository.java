@@ -1,11 +1,11 @@
-package com.example.base.archetype.repository;
+package com.example.layared.archetype.repository;
 
 import org.springframework.stereotype.Repository;
 
 import java.io.File;
 
 @Repository
-public class CsvReader implements CrudRepository<File> {
+public class CsvRepository implements CrudRepository<File> {
 
 
     @Override

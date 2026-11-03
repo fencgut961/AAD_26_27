@@ -1,9 +1,9 @@
-package com.example.base.archetype.repository;
+package com.example.layared.archetype.repository;
 
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class TxtReader implements CrudRepository<String> {
+public class JsonRepository implements CrudRepository<String> {
 
 
     @Override

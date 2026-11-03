@@ -1,1 +1,7 @@
-spring.application.name=base-archetype
+spring:
+  application:
+    name: base-archetype
+
+server:
+  # Cambia este valor o define la variable de entorno SERVER_PORT para elegir el puerto.
+  port: ${SERVER_PORT:8080}
