@@ -1,47 +1,19 @@
 -- Tabla de usuarios
-CREATE TABLE IF NOT EXISTS usuarios
-(
-    id
-    SERIAL
-    PRIMARY
-    KEY,
-    nombre
-    VARCHAR
-(
-    100
-) NOT NULL,
-    email VARCHAR
-(
-    100
-) UNIQUE NOT NULL,
+CREATE TABLE IF NOT EXISTS usuarios (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
+);
 
 -- Tabla de ventas
-CREATE TABLE IF NOT EXISTS ventas
-(
-    id
-    SERIAL
-    PRIMARY
-    KEY,
-    usuario_id
-    INT
-    REFERENCES
-    usuarios
-(
-    id
-),
-    producto VARCHAR
-(
-    100
-) NOT NULL,
-    monto NUMERIC
-(
-    10,
-    2
-) NOT NULL,
+CREATE TABLE IF NOT EXISTS ventas (
+    id SERIAL PRIMARY KEY,
+    usuario_id INT REFERENCES usuarios(id),
+    producto VARCHAR(100) NOT NULL,
+    monto NUMERIC(10, 2) NOT NULL,
     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
+);
 
 -- Datos iniciales de prueba
 INSERT INTO usuarios (nombre, email)

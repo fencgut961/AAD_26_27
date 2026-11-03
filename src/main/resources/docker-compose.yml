@@ -1,12 +1,12 @@
 services:
   postgres-db:
     image: postgres:16-alpine
-    container_name: postgres-tutor
+    container_name: aad-container
     restart: always
     environment:
-      POSTGRES_DB: educa_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: aad_postgres_db
+      POSTGRES_USER: aad_postgres_user
+      POSTGRES_PASSWORD: aad_postgres_pass
     ports:
       - "5432:5432"
     volumes:
