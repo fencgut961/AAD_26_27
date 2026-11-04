@@ -8,11 +8,8 @@ import java.nio.file.Path;
 @Component
 public class TrafficDataPaths {
 
-    private final Path root;
-
-    public TrafficDataPaths(@Value("${traffic-data.directory}") String directory) {
-        this.root = Path.of(directory);
-    }
+    @Value("${traffic-data.directory}")
+    private Path root;
 
     public Path inputDirectory() {
         return root.resolve("input");
