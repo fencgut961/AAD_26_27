@@ -1,0 +1,24 @@
+{
+  "radarId" : "RADAR-M30-KM12",
+  "status" : "READY_FOR_DISPATCH",
+  "totalVehicles" : 4,
+  "totalInfractions" : 3,
+  "maxSpeed" : 180.0,
+  "totalFines" : 1000.00,
+  "infractions" : [ {
+    "plate" : "1234-KBB",
+    "model" : "Peugeot 308 (España)",
+    "speed" : 115.5,
+    "fine" : 100.00
+  }, {
+    "plate" : "5678-CJK",
+    "model" : "BYD 唐 (China Edition)",
+    "speed" : 135.0,
+    "fine" : 300.00
+  }, {
+    "plate" : "0001-DIR",
+    "model" : "Audi A8 Blindado Oficial",
+    "speed" : 180.0,
+    "fine" : 600.00
+  } ]
+}

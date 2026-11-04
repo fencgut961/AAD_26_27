@@ -1,1 +1,6 @@
-spring.application.name=base-archetype
+spring:
+  application:
+    name: base-archetype
+
+traffic-data:
+  directory: src/main/resources/traffic_data
