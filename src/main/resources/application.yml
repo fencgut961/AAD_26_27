@@ -1,1 +1,5 @@
-spring.application.name=base-archetype
+database:
+  url: jdbc:postgresql://localhost:5432/aad_db?ssl=false&currentSchema=public
+  username: aad_user
+  password: aad_pass
+  driver-class-name: org.postgresql.Driver

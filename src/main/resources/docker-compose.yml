@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: aad_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: aad_db
+      POSTGRES_USER: aad_user
+      POSTGRES_PASSWORD: aad_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
