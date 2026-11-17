@@ -98,8 +98,8 @@ services:
     restart: always
     environment:
       POSTGRES_DB: aad_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1234
+      POSTGRES_USER: aad_user
+      POSTGRES_PASSWORD: aad_pass
     ports:
       - "5432:5432"
     volumes:
@@ -158,8 +158,8 @@ Definiremos los parámetros de conexión en el fichero `application.yml`, evitan
 ```yaml
 database:
   url: jdbc:postgresql://localhost:5432/aad_db?ssl=false&currentSchema=public
-  username: postgres
-  password: postgres
+  username: aad_user
+  password: aad_pass
   driver-class-name: org.postgresql.Driver
 ```
 
