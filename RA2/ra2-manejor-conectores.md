@@ -65,7 +65,7 @@ sequenceDiagram
     participant Driver as Driver JDBC (PostgresqlDriver)
     participant DB as Servidor PostgreSQL (Docker)
 
-    App->>Driver: Solicitud de Conexión (DriverManager/DataSource)
+    App->>Driver: Solicitud de Conexión (DriverManager/PostgresqlDriver)
     Driver->>DB: Handshake TCP (Puerto 5432)
     DB-->>Driver: ACK TCP
     Driver->>DB: Autenticación (User/Password)
@@ -138,7 +138,7 @@ jdbc:postgresql://localhost:5432/aad_db?ssl=false&currentSchema=public
 
 Para establecer conexiones con PostgreSQL desde nuestra aplicación Java, necesitamos incorporar el controlador JDBC correspondiente y configurar los parámetros de conexión.
 
-**1. Incorporar la dependencia JDBC de PostgreSQL**
+##### **1. Incorporar la dependencia JDBC de PostgreSQL**
 
 Añadimos la siguiente dependencia al fichero `pom.xml` del proyecto Maven:
 
@@ -151,7 +151,7 @@ Añadimos la siguiente dependencia al fichero `pom.xml` del proyecto Maven:
 
 Esta dependencia proporciona el controlador JDBC necesario para que Java pueda comunicarse con PostgreSQL. Si utilizamos Spring Boot con su gestión de dependencias, no es necesario especificar manualmente la versión.
 
-**2. Configurar los parámetros de conexión**
+##### **2. Configurar los parámetros de conexión**
 
 Definiremos los parámetros de conexión en el fichero `application.yml`, evitando escribir directamente los datos de acceso en el código Java.
 
@@ -170,7 +170,7 @@ Los principales parámetros son:
 - `password`: contraseña del usuario.
 - `driver-class-name`: clase del controlador JDBC de PostgreSQL.
 
-**3. Crear la clase DatabaseProperties**
+##### **3. Crear la clase DatabaseProperties**
 
 Para acceder a las propiedades definidas en `application.yml`, crearemos una clase denominada `DatabaseProperties.java`.
 
@@ -201,7 +201,7 @@ Utilizamos las siguientes anotaciones:
 
 Spring Boot realiza automáticamente la correspondencia entre `driver-class-name` y `driverClassName`.
 
-**4. Crear la clase PostgresqlDriver**
+##### **4. Crear la clase PostgresqlDriver**
 
 Crearemos una clase denominada `PostgresqlDriver.java`, cuya responsabilidad será proporcionar conexiones JDBC con PostgreSQL.
 
@@ -250,9 +250,6 @@ El funcionamiento de estas clases sigue el siguiente flujo:
 De esta forma, centralizamos la configuración de conexión y separamos las responsabilidades de configuración y acceso a la base de datos.
 
 **Importante:** cada llamada a `getConnection()` establece una nueva conexión. Por tanto, cuando terminemos de utilizarla, debemos cerrarla para liberar los recursos asociados. Una forma recomendable de hacerlo es mediante `try-with-resources`.
-
-
----
 
 ---
 
@@ -514,7 +511,7 @@ stateDiagram-v2
 package com.edu.aad.repository;
 
 import com.edu.aad.model.Student;
-import javax.sql.DataSource;
+import com.edu.aad.config.PostgresqlDriver;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -522,9 +519,9 @@ import java.util.Optional;
 
 public class StudentJdbcRepository {
 
-    private final DataSource dataSource;
+    private final PostgresqlDriver dataSource;
 
-    public StudentJdbcRepository(DataSource dataSource) {
+    public StudentJdbcRepository(PostgresqlDriver dataSource) {
         this.dataSource = dataSource;
     }
 
@@ -797,7 +794,7 @@ graph TD
 ```
 
 ```java
-public void printDatabaseInfo(DataSource dataSource) {
+public void printDatabaseInfo(PostgresqlDriver dataSource) {
     try (Connection conn = dataSource.getConnection()) {
         DatabaseMetaData metaData = conn.getMetaData();
 
@@ -831,7 +828,7 @@ graph TD
 ```
 
 ```java
-public void inspectQueryResult(DataSource dataSource, String sql) {
+public void inspectQueryResult(PostgresqlDriver dataSource, String sql) {
     try (Connection conn = dataSource.getConnection();
          PreparedStatement ps = conn.prepareStatement(sql);
          ResultSet rs = ps.executeQuery()) {
@@ -880,7 +877,7 @@ graph TD
     end
 
     subgraph SpringInfra["Infraestructura Spring JDBC"]
-        DS["DataSource (Conexión Directa JDBC)"]
+        DS["PostgresqlDriver (Conexión Directa JDBC)"]
         Translator["SQLErrorCodeSQLExceptionTranslator\n(Convierte SQLException -> DataAccessException)"]
     end
 
@@ -1133,7 +1130,7 @@ public class EnrollmentService {
 
 | Aspecto | JDBC Tradicional (Puro) | Spring JDBC (`JdbcTemplate`) |
 | :--- | :--- | :--- |
-| **Gestión de Conexiones** | Manual (`DriverManager` / `close()`) | Automática mediante `DataSource` administrado por Spring |
+| **Gestión de Conexiones** | Manual (`DriverManager` / `close()`) | Automática mediante `PostgresqlDriver` administrado por Spring |
 | **Manejo de Excepciones** | Obligatorio `catch (SQLException e)` | Automático (`DataAccessException` runtime) |
 | **Consultas y Parámetros** | `PreparedStatement` con índices `1, 2, ...` | `JdbcTemplate` o parámetros nombrados (`:nombre`) |
 | **Mapeo de Resultados** | Bucle manual `while (rs.next())` | Expresiones Lambda / `RowMapper<T>` |
@@ -1146,7 +1143,7 @@ public class EnrollmentService {
 > **Enfoque:** Migración del código JDBC puro hacia el ecosistema Spring Boot.
 
 #### Objetivos del Live Coding:
-1. Configurar `application.yml` con las propiedades de conexión del `DataSource`.
+1. Configurar `application.yml` con las propiedades de conexión del `PostgresqlDriver`.
 2. Refactorizar el repositorio manual reemplazando `PreparedStatement` y `ResultSet` por `JdbcTemplate` y expresiones Lambda con `RowMapper`.
 3. Utilizar `NamedParameterJdbcTemplate` para consultas con parámetros por nombre.
 4. Sustituir el bloque `try-catch` con `rollback()` manual por la anotación declarativa `@Transactional`.
