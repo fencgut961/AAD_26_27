@@ -127,12 +127,130 @@ graph TD
     Postgres --> Volume
 ```
 
+
 #### Parámetros de Conexión y Cadena JDBC
+
 La **URL JDBC** identifica de manera unívoca la ubicación de la base de datos y sus parámetros de configuración:
 
 ```text
 jdbc:postgresql://localhost:5432/aad_db?ssl=false&currentSchema=public
 ```
+
+Para establecer conexiones con PostgreSQL desde nuestra aplicación Java, necesitamos incorporar el controlador JDBC correspondiente y configurar los parámetros de conexión.
+
+**1. Incorporar la dependencia JDBC de PostgreSQL**
+
+Añadimos la siguiente dependencia al fichero `pom.xml` del proyecto Maven:
+
+```xml
+<dependency>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
+</dependency>
+```
+
+Esta dependencia proporciona el controlador JDBC necesario para que Java pueda comunicarse con PostgreSQL. Si utilizamos Spring Boot con su gestión de dependencias, no es necesario especificar manualmente la versión.
+
+**2. Configurar los parámetros de conexión**
+
+Definiremos los parámetros de conexión en el fichero `application.yml`, evitando escribir directamente los datos de acceso en el código Java.
+
+```yaml
+database:
+  url: jdbc:postgresql://localhost:5432/aad_db?ssl=false&currentSchema=public
+  username: postgres
+  password: postgres
+  driver-class-name: org.postgresql.Driver
+```
+
+Los principales parámetros son:
+
+- `url`: dirección JDBC de la base de datos.
+- `username`: usuario de acceso a PostgreSQL.
+- `password`: contraseña del usuario.
+- `driver-class-name`: clase del controlador JDBC de PostgreSQL.
+
+**3. Crear la clase DatabaseProperties**
+
+Para acceder a las propiedades definidas en `application.yml`, crearemos una clase denominada `DatabaseProperties.java`.
+
+Esta clase se encargará de recoger y almacenar automáticamente los valores de configuración utilizando `@ConfigurationProperties`.
+
+```java
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+@Data
+@Component
+@ConfigurationProperties(prefix = "database")
+public class DatabaseProperties {
+
+    private String url;
+    private String username;
+    private String password;
+    private String driverClassName;
+}
+```
+
+Utilizamos las siguientes anotaciones:
+
+- `@Data` (Lombok): genera automáticamente los getters, setters y otros métodos habituales.
+- `@Component`: registra la clase como un componente de Spring.
+- `@ConfigurationProperties`: vincula las propiedades del fichero `application.yml` con los atributos de la clase. El prefijo `database` indica qué bloque de configuración debe leer.
+
+Spring Boot realiza automáticamente la correspondencia entre `driver-class-name` y `driverClassName`.
+
+**4. Crear la clase PostgresqlDriver**
+
+Crearemos una clase denominada `PostgresqlDriver.java`, cuya responsabilidad será proporcionar conexiones JDBC con PostgreSQL.
+
+Para ello, utilizaremos `DriverManager.getConnection()`, que recibe la URL, el usuario y la contraseña de conexión.
+
+```java
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+@Component
+@RequiredArgsConstructor
+public class PostgresqlDriver {
+
+    private final DatabaseProperties databaseProperties;
+
+    public Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(
+            databaseProperties.getUrl(),
+            databaseProperties.getUsername(),
+            databaseProperties.getPassword()
+        );
+    }
+}
+```
+
+Utilizamos las siguientes anotaciones:
+
+- `@Component`: registra la clase como un componente de Spring.
+- `@RequiredArgsConstructor` (Lombok): genera un constructor con los atributos `final`, permitiendo que Spring inyecte automáticamente `DatabaseProperties`.
+
+El método `getConnection()` devuelve un objeto `Connection` que representa una conexión activa con la base de datos. Puede producir una excepción `SQLException` si se produce algún error durante el establecimiento de la conexión.
+
+**5. Estructura y funcionamiento**
+
+El funcionamiento de estas clases sigue el siguiente flujo:
+
+1. `application.yml` contiene los parámetros de conexión.
+2. `DatabaseProperties` recoge automáticamente dichos parámetros.
+3. `PostgresqlDriver` utiliza esas propiedades para establecer la conexión mediante `DriverManager`.
+4. Se obtiene un objeto `Connection` que permite ejecutar operaciones SQL sobre PostgreSQL.
+
+De esta forma, centralizamos la configuración de conexión y separamos las responsabilidades de configuración y acceso a la base de datos.
+
+**Importante:** cada llamada a `getConnection()` establece una nueva conexión. Por tanto, cuando terminemos de utilizarla, debemos cerrarla para liberar los recursos asociados. Una forma recomendable de hacerlo es mediante `try-with-resources`.
+
 
 ---
 
