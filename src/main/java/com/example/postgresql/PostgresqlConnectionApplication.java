@@ -3,12 +3,18 @@ package com.example.postgresql;
 import com.example.postgresql.config.PostgresqlDriver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.core.io.Resource;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 @SpringBootApplication
 @RequiredArgsConstructor
@@ -16,6 +22,9 @@ import java.sql.DatabaseMetaData;
 public class PostgresqlConnectionApplication implements CommandLineRunner {
 
     public final PostgresqlDriver postgresqlDriver;
+
+    @Value("classpath:schema.sql")
+    private Resource schemaScript;
 
     public static void main(String[] args) {
         SpringApplication.run(PostgresqlConnectionApplication.class, args);
@@ -34,6 +43,16 @@ public class PostgresqlConnectionApplication implements CommandLineRunner {
             log.info("JDBC version: {}.{}", metaData.getJDBCMajorVersion(), metaData.getJDBCMinorVersion());
             log.info("Catalog: {}, Schema: {}", conn.getCatalog(), conn.getSchema());
             log.info("Read only: {}", metaData.isReadOnly());
+
+            executeSqlScript(conn, schemaScript);
         }
+    }
+
+    private void executeSqlScript(Connection conn, Resource resource) throws IOException, SQLException {
+        String script = resource.getContentAsString(StandardCharsets.UTF_8);
+        try (Statement st = conn.createStatement()) {
+            st.execute(script);
+        }
+        log.info("SQL script {} executed", resource.getFilename());
     }
 }
