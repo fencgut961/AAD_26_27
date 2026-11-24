@@ -510,15 +510,13 @@ public class AadTexServicesTest {
         int salesCountBefore = countSalesInDb();
 
         // Producto inexistente ID 999999 forzará un fallo de FK en detalle_venta
-        int invalidProductId = 999999;
+        Long invalidProductId = 999999L;
         List<SaleDetail> invalidDetails = List.of(
             SaleDetail.builder().productId(invalidProductId).quantity(1).unitPrice(new BigDecimal("50.00")).build()
         );
 
         // Se espera que el servicio lance excepción al detectar el fallo en la transacción
-        assertThrows(RuntimeException.class, () -> {
-            saleService.processSale(activeStore.id(), invalidDetails);
-        }, "El servicio debe lanzar RuntimeException tras hacer rollback");
+        assertThrows(RuntimeException.class, () -> saleService.processSale(activeStore.id(), invalidDetails), "El servicio debe lanzar RuntimeException tras hacer rollback");
 
         int salesCountAfter = countSalesInDb();
 
@@ -541,7 +539,7 @@ public class AadTexServicesTest {
     private int countSalesInDb() throws Exception {
         try (Connection conn = postgresqlDriver.getConnection();
              Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM venta")) {
+             ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM sales")) {
             if (rs.next()) {
                 return rs.getInt(1);
             }
