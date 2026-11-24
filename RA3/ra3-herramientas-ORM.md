@@ -242,7 +242,7 @@ stateDiagram-v2
     end note
 ```
 
-**Qué debes recordar:** El identificador de una entidad no determina su estado. Un objeto puede tener un identificador y estar separado, sin que JPA controle sus modificaciones. La clave está en su relación con el contexto de persistencia.
+**Idea clave:** Una entidad puede tener identificador y no estar gestionada por JPA. Lo que determina si sus modificaciones se sincronizan automáticamente con la base de datos es su asociación con un contexto de persistencia activo.
 
 ---
 
