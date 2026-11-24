@@ -186,73 +186,88 @@ La arquitectura interna de JPA se sostiene en cuatro componentes esenciales que 
 
 ### 2.2 El Contexto de Persistencia y Ciclo de Vida
 
-El contexto de persistencia (*Persistence Context*) gestiona las entidades Java a lo largo de un ciclo de vida compuesto por cuatro estados. Para comprender su funcionamiento, utilizaremos como ejemplo un objeto `Producto` que representa un teclado mecánico con un precio inicial de 59,99 €.
 
-**1. Transitorio (*Transient*)**
+### Ciclo de vida de las entidades JPA
 
-El objeto se ha creado mediante `new`, pero todavía no está asociado a ningún contexto de persistencia ni se encuentra registrado en la base de datos.
+JPA gestiona las entidades a través de un **contexto de persistencia**, que controla su estado y determina cómo se sincronizan sus cambios con la base de datos.
 
-*Ejemplo:* Creamos un producto llamado «Teclado mecánico», con un precio de 59,99 €. El objeto existe únicamente en memoria, todavía no tiene identificador asignado y no aparece en la base de datos.
+Una entidad puede encontrarse en cuatro estados diferentes:
 
-> **Producto — Transient**
+#### 1. Estado transitorio (Transient)
+
+Se produce cuando creamos un objeto mediante `new`. La entidad existe únicamente en memoria y todavía no está asociada al contexto de persistencia ni registrada en la base de datos.
+
+> [!NOTE]
+> **Ejemplo:**
+>
+> Creamos un producto nuevo utilizando `new Producto()`.
 >
 > | Atributo | Valor |
 > |---|---|
-> | id | `null` |
-> | nombre | Teclado mecánico |
-> | precio | 59,99 € |
+> | ID | `null` |
+> | Nombre | Teclado mecánico |
+> | Precio | 59,99 € |
 >
-> **Estado:** Solo existe en memoria. No está registrado en la base de datos.
+> **Situación:** El producto solo existe en memoria. JPA todavía no lo gestiona.
 
-**2. Persistente (*Managed / Persistent*)**
+#### 2. Estado persistente (Managed)
 
-El objeto está asociado a un contexto de persistencia activo. JPA realiza un seguimiento de sus modificaciones (*Dirty Checking*) y detecta automáticamente los cambios en sus atributos para sincronizarlos con la base de datos durante el proceso de *flush*.
+Se produce cuando una entidad se incorpora al contexto de persistencia mediante `persist()` o cuando se obtiene de la base de datos mediante una consulta. JPA comienza a gestionar el objeto y detecta automáticamente las modificaciones realizadas en sus atributos mediante el mecanismo **Dirty Checking**.
 
-*Ejemplo:* Incorporamos el producto al contexto de persistencia y se almacena con el identificador `101`. Posteriormente, modificamos su precio de 59,99 € a 49,99 €. JPA detecta automáticamente esta modificación y genera la correspondiente sentencia SQL `UPDATE` al sincronizar los cambios, sin necesidad de ejecutar una actualización explícita.
-
-> **Producto — Managed**
+> [!TIP]
+> **Ejemplo:**
 >
-> | Atributo | Valor |
-> |---|---|
-> | id | `101` |
-> | nombre | Teclado mecánico |
-> | precio | 49,99 € |
->
-> **Estado:** Gestionado por JPA. Los cambios se detectan mediante *Dirty Checking* y se sincronizan con la base de datos.
-
-**3. Separado (*Detached*)**
-
-El objeto estuvo gestionado por un contexto de persistencia, pero ha dejado de estarlo porque este se ha cerrado, se ha limpiado o se ha separado expresamente la entidad. Aunque conserva su identificador, las modificaciones realizadas ya no se sincronizan automáticamente con la base de datos.
-
-*Ejemplo:* Cerramos el contexto de persistencia y el producto pasa a estar separado. Conserva el identificador `101`, pero si modificamos su precio de 49,99 € a 39,99 €, el cambio solo afecta al objeto en memoria. La base de datos sigue almacenando el precio anterior (49,99 €). Para volver a gestionar sus datos podemos utilizar `merge()`, que devuelve una instancia gestionada.
-
-> **Producto — Detached**
+> Incorporamos el producto al contexto de persistencia mediante `persist()`. Posteriormente, modificamos su precio.
 >
 > | Atributo | Valor |
 > |---|---|
-> | id | `101` |
-> | nombre | Teclado mecánico |
-> | precio | 39,99 € |
+> | ID | `101` |
+> | Nombre | Teclado mecánico |
+> | Precio inicial | 59,99 € |
+> | Precio modificado | 49,99 € |
 >
-> **Estado:** No gestionado por JPA. El objeto tiene 39,99 €, pero la base de datos conserva 49,99 €. Los cambios no se sincronizan automáticamente.
+> **Situación:** JPA detecta el cambio de precio y lo sincronizará con la base de datos durante el `flush()` o el `commit()` de la transacción.
 
-**4. Eliminado (*Removed*)**
+#### 3. Estado separado (Detached)
 
-El objeto continúa asociado al contexto de persistencia, pero está marcado para su eliminación. El borrado físico se ejecutará al sincronizar los cambios con la base de datos (*flush*), normalmente durante la confirmación de la transacción (*commit*).
+Se produce cuando una entidad que estaba siendo gestionada deja de estar asociada al contexto de persistencia. Esto puede ocurrir al cerrar el `EntityManager`, ejecutar `clear()` o separar expresamente la entidad mediante `detach()`.
 
-*Ejemplo:* Volvemos a incorporar los datos del producto al contexto de persistencia y solicitamos su eliminación. El producto queda marcado para borrar y, cuando se sincronizan los cambios, JPA ejecuta la sentencia SQL `DELETE`. El registro con identificador `101` deja de existir en la base de datos.
+El objeto sigue existiendo en memoria y conserva su identificador, pero JPA deja de controlar sus modificaciones. Para volver a incorporarlo al contexto se utiliza `merge()`, que devuelve una nueva instancia gestionada con los datos de la entidad separada.
 
-> **Producto — Removed**
+> [!WARNING]
+> **Ejemplo:**
+>
+> El producto deja de estar gestionado y modificamos su precio directamente en memoria.
 >
 > | Atributo | Valor |
 > |---|---|
-> | id | `101` |
-> | nombre | Teclado mecánico |
-> | precio | 39,99 € |
+> | ID | `101` |
+> | Nombre | Teclado mecánico |
+> | Precio del objeto | 39,99 € |
+> | Precio en la BD | 49,99 € |
 >
-> **Estado:** Marcado para eliminar. Al ejecutar el `DELETE`, el registro desaparece de la base de datos.
+> **Situación:** Aunque hemos cambiado el precio del objeto, la base de datos sigue conservando 49,99 €. El cambio no se sincroniza automáticamente porque la entidad está separada.
 
-### Diagrama del ciclo de vida
+#### 4. Estado eliminado (Removed)
+
+Se produce cuando solicitamos la eliminación de una entidad gestionada mediante `remove()`. La entidad continúa asociada al contexto de persistencia, pero queda marcada para su eliminación. La sentencia SQL `DELETE` se ejecutará durante el `flush()` o el `commit()` de la transacción.
+
+> [!CAUTION]
+> **Ejemplo:**
+>
+> Recuperamos el producto y solicitamos su eliminación mediante `remove()`.
+>
+> | Atributo | Valor |
+> |---|---|
+> | ID | `101` |
+> | Nombre | Teclado mecánico |
+> | Estado | Marcado para eliminar |
+>
+> **Situación:** El producto permanece en el contexto, pero JPA tiene pendiente eliminarlo de la base de datos. Una vez confirmada la transacción, el registro desaparecerá.
+
+#### Resumen del ciclo de vida
+
+El siguiente diagrama representa los cuatro estados y las operaciones que permiten pasar de uno a otro:
 
 ```mermaid
 stateDiagram-v2
@@ -289,7 +304,12 @@ stateDiagram-v2
     Persistente --> Persistente: Modificar atributos
 ```
 
-**Idea clave:** Lo importante no es que una entidad tenga un identificador, sino que JPA la esté gestionando. Si está en estado persistente, JPA detecta automáticamente sus modificaciones y las sincroniza con la base de datos. Si está separada, aunque tenga identificador y podamos modificar sus atributos, esos cambios no se guardan automáticamente.
+> [!IMPORTANT]
+> **Idea clave**
+>
+> Lo importante no es que una entidad tenga un identificador, sino que JPA la esté gestionando. Si está en estado persistente, JPA detecta automáticamente sus modificaciones y las sincroniza con la base de datos. Si está separada, aunque conserve su identificador y podamos modificar sus atributos, esos cambios no se guardan automáticamente.
+
+
 ---
 
 ### 2.3 Integración con Spring Boot, HikariCP y Pooling de Conexiones
