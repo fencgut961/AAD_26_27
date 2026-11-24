@@ -332,41 +332,33 @@ public class AadTexRepositoriesTest {
 
     @Test
     @Order(5)
-    @DisplayName("05. SaleRepository: Cabecera, Detalles, Búsquedas e Invocación CallableStatement")
-    void testSaleRepositoryOperations() throws Exception {
+    @DisplayName("05. SaleRepository: CREATE, FIND_BY_ID, FIND_ALL, UPDATE y DELETE")
+    void testSaleRepositoryOperations() {
         assertNotNull(testStore);
         assertNotNull(testProduct);
 
-        // Crear Venta Cabecera
         Sale saleHeader = Sale.builder()
                 .storeId(testStore.id())
                 .total(new BigDecimal("99.90"))
                 .build();
 
-        Sale createdSale = saleRepository.createHeader(saleHeader);
-        assertNotNull(createdSale.id(), "La cabecera de la venta debe generar un ID");
-
-        // Crear Detalle
-        SaleDetail detail = SaleDetail.builder()
-                .saleId(createdSale.id())
-                .productId(testProduct.id())
-                .quantity(2)
-                .unitPrice(testProduct.price())
-                .build();
-
-        saleRepository.createDetail(createdSale.id(), detail);
-
-        // FIND_BY_ID & FIND_ALL
+        Sale createdSale = saleRepository.create(saleHeader);
+        assertNotNull(createdSale.id(), "La venta debe generar un ID");
         Sale fetchedSale = saleRepository.findById(createdSale.id());
         assertNotNull(fetchedSale);
-
         List<Sale> allSales = saleRepository.findAll();
-        assertFalse(allSales.isEmpty());
+        assertTrue(allSales.stream().anyMatch(s -> s.id().equals(createdSale.id())));
 
-        // Invocación de CallableStatement (Función PL/pgSQL)
-        BigDecimal calculatedTotal = saleRepository.calculateTotalSalesByStore(testStore.id());
-        assertNotNull(calculatedTotal);
-        assertTrue(calculatedTotal.compareTo(BigDecimal.ZERO) >= 0);
+        Sale updatedSale = Sale.builder()
+                .id(createdSale.id())
+                .storeId(testStore.id())
+                .total(new BigDecimal("120.00"))
+                .build();
+        assertTrue(saleRepository.update(updatedSale));
+        assertEquals(0, new BigDecimal("120.00").compareTo(saleRepository.findById(createdSale.id()).total()));
+        assertTrue(saleRepository.delete(createdSale.id()));
+        assertNull(saleRepository.findById(createdSale.id()));
+        assertFalse(saleRepository.delete(createdSale.id()));
     }
 }
 ```
