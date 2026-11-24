@@ -192,7 +192,7 @@ El contexto de persistencia (Persistence Context) gestiona las entidades Java a 
 - Eliminado (Removed): El objeto continúa asociado al contexto de persistencia, pero está marcado para su eliminación. El borrado físico se ejecutará al sincronizar los cambios con la base de datos, normalmente durante la confirmación de la transacción (commit).
 
 #### Ejemplo práctico: ciclo de vida de un producto
-Vamos a utilizar una misma entidad Producto durante todo el ejemplo. Imaginemos que estamos gestionando un teclado mecánico cuyo precio inicial es de 59,99 €.
+Vamos a utilizar una misma entidad Producto durante todo el ejemplo. Imaginemos que estamos gestionando un teclado mecánico cuyo precio inicial es de 59,99 €. 
 ![ciclo_vida_producto.png](resources/ciclo_vida_producto.png)
 
 #### Diagrama del ciclo de vida
