@@ -23,8 +23,11 @@ public class PostgresqlConnectionApplication implements CommandLineRunner {
 
     public final PostgresqlDriver postgresqlDriver;
 
-    @Value("classpath:schema.sql")
+    @Value("classpath:01_schema.sql")
     private Resource schemaScript;
+
+    @Value("classpath:02_procedures.sql")
+    private Resource proceduresScript;
 
     public static void main(String[] args) {
         SpringApplication.run(PostgresqlConnectionApplication.class, args);
@@ -45,6 +48,7 @@ public class PostgresqlConnectionApplication implements CommandLineRunner {
             log.info("Read only: {}", metaData.isReadOnly());
 
             executeSqlScript(conn, schemaScript);
+            executeSqlScript(conn, proceduresScript);
         }
     }
 
