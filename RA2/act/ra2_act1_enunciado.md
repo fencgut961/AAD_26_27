@@ -198,8 +198,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("Suite 1: Evaluación Completa de Repositorios JDBC (CRUD + SQL)")
 public class AadTexRepositoriesTest {
 
-    @Autowired
-    private PostgresqlDriver postgresqlDriver;
+    private static Store testStore;
+    private static Product testProduct;
 
     @Autowired
     private StoreRepository storeRepository;
@@ -209,9 +209,6 @@ public class AadTexRepositoriesTest {
 
     @Autowired
     private SaleRepository saleRepository;
-
-    private static Store testStore;
-    private static Product testProduct;
 
     @Test
     @Order(1)
@@ -389,6 +386,10 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("Suite 2: Evaluación Completa de Lógica de Negocio y Transacciones ACID")
 public class AadTexServicesTest {
 
+    private static Store activeStore;
+    private static Product activeProduct1;
+    private static Product activeProduct2;
+
     @Autowired
     private PostgresqlDriver postgresqlDriver;
 
@@ -400,10 +401,6 @@ public class AadTexServicesTest {
 
     @Autowired
     private SaleService saleService;
-
-    private static Store activeStore;
-    private static Product activeProduct1;
-    private static Product activeProduct2;
 
     @Test
     @Order(1)
@@ -476,21 +473,29 @@ public class AadTexServicesTest {
     @Test
     @Order(3)
     @DisplayName("03. SaleService: Procesamiento Exitoso de Venta Transaccional (Commit ACID)")
-    void testProcessSaleSuccessCommit() {
+    void testProcessSaleSuccessCommit() throws Exception {
         assertNotNull(activeStore);
         assertNotNull(activeProduct1);
         assertNotNull(activeProduct2);
 
         // Detalle: (1 * 120.00) + (2 * 25.00) = 170.00 €
         List<SaleDetail> details = List.of(
-            SaleDetail.builder().productId(activeProduct1.id()).quantity(1).unitPrice(activeProduct1.price()).build(),
-            SaleDetail.builder().productId(activeProduct2.id()).quantity(2).unitPrice(activeProduct2.price()).build()
+                SaleDetail.builder().productId(activeProduct1.id()).quantity(1).unitPrice(activeProduct1.price()).build(),
+                SaleDetail.builder().productId(activeProduct2.id()).quantity(2).unitPrice(activeProduct2.price()).build()
         );
 
         Sale sale = saleService.processSale(activeStore.id(), details);
 
         assertNotNull(sale.id(), "La venta debe haber sido persistida con ID asignado");
         assertEquals(0, new BigDecimal("170.00").compareTo(sale.total()), "El cálculo del total de la venta debe ser 170.00 €");
+        try (Connection conn = postgresqlDriver.getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM sale_details WHERE sale_id = ?")) {
+            ps.setLong(1, sale.id());
+            try (ResultSet rs = ps.executeQuery()) {
+                assertTrue(rs.next());
+                assertEquals(2, rs.getInt(1));
+            }
+        }
     }
 
     @Test
@@ -504,7 +509,8 @@ public class AadTexServicesTest {
         // Producto inexistente ID 999999 forzará un fallo de FK en detalle_venta
         Long invalidProductId = 999999L;
         List<SaleDetail> invalidDetails = List.of(
-            SaleDetail.builder().productId(invalidProductId).quantity(1).unitPrice(new BigDecimal("50.00")).build()
+                SaleDetail.builder().productId(activeProduct1.id()).quantity(1).unitPrice(activeProduct1.price()).build(),
+                SaleDetail.builder().productId(invalidProductId).quantity(1).unitPrice(new BigDecimal("50.00")).build()
         );
 
         // Se espera que el servicio lance excepción al detectar el fallo en la transacción
