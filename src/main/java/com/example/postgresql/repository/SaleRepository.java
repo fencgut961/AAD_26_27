@@ -2,7 +2,6 @@ package com.example.postgresql.repository;
 
 import com.example.postgresql.config.PostgresqlDriver;
 import com.example.postgresql.model.Sale;
-import com.example.postgresql.persistence.SaleInsert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -23,9 +22,28 @@ public class SaleRepository implements CrudRepository<Sale, Long> {
     @Override
     public Sale create(Sale sale) {
         try (Connection conn = driver.getConnection()) {
-            return SaleInsert.insert(conn, sale);
+            return create(sale, conn);
         } catch (SQLException e) {
             throw new IllegalStateException("Error creating sale", e);
+        }
+    }
+
+    public Sale create(Sale sale, Connection conn) throws SQLException {
+        String sql = "INSERT INTO sales (store_id, total) VALUES (?, ?) RETURNING id, sale_date";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, sale.storeId());
+            ps.setBigDecimal(2, sale.total());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    throw new SQLException("Creating sale returned no generated key");
+                }
+                return Sale.builder()
+                        .id(rs.getLong("id"))
+                        .storeId(sale.storeId())
+                        .saleDate(rs.getTimestamp("sale_date").toLocalDateTime())
+                        .total(sale.total())
+                        .build();
+            }
         }
     }
 

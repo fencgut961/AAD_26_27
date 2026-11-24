@@ -3,7 +3,7 @@ package com.example.postgresql.service;
 import com.example.postgresql.config.PostgresqlDriver;
 import com.example.postgresql.model.Sale;
 import com.example.postgresql.model.SaleDetail;
-import com.example.postgresql.persistence.SaleInsert;
+import com.example.postgresql.repository.SaleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +20,7 @@ import java.util.List;
 public class SaleService {
 
     private final PostgresqlDriver driver;
+    private final SaleRepository saleRepository;
 
     public Sale processSale(Long storeId, List<SaleDetail> details) {
         BigDecimal total = details.stream()
@@ -32,7 +33,7 @@ public class SaleService {
         try (Connection conn = driver.getConnection()) {
             conn.setAutoCommit(false);
             try {
-                Sale createdSale = SaleInsert.insert(conn, sale);
+                Sale createdSale = saleRepository.create(sale, conn);
                 String sql = "INSERT INTO sale_details (sale_id, product_id, quantity, unit_price) VALUES (?, ?, ?, ?)";
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
                     for (SaleDetail detail : details) {
