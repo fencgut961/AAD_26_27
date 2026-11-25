@@ -541,13 +541,14 @@ public class StudentJdbcRepository {
 
             ps.executeUpdate();
 
+            Student newStudent = new Student(student.nif(), student.name(), student.email(), student.curse());
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) {
                     int generatedId = rs.getInt(1);
-                    return new Student(generatedId, student.nif(), student.name(), student.email(), student.curse());
+                    newStudent.setGeneratedId(generatedId);
                 }
             }
-            return student;
+            return newStudent;
         } catch (SQLException e) {
             throw new RuntimeException("Error insertando alumno: " + student.nif(), e);
         }
