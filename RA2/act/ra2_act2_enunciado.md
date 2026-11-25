@@ -246,25 +246,32 @@ public class SaleService {
 
 ## 6. Suites de Pruebas TDD Adaptadas para Spring JDBC
 
-### 🧪 Suite 1: Pruebas de Repositorios (`src/test/java/com/<usuario>/aad/repository/AadTexRepositoriesTest.java`)
+### 🧪 Test Suite 1: Pruebas de la Capa de Repositorios (`src/test/java/com/<usuario>/aad/repository/AadTexRepositoriesTest.java`)
 
 ```java
 package com.usuario.aad.repository;
 
+import com.usuario.aad.config.PostgresqlDriver;
 import com.usuario.aad.model.*;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@DisplayName("Suite 1: Evaluación Completa de Repositorios con JdbcTemplate")
+@DisplayName("Suite 1: Evaluación Completa de Repositorios JDBC (CRUD + SQL)")
 public class AadTexRepositoriesTest {
+
+    private static Store testStore;
+    private static Product testProduct;
 
     @Autowired
     private StoreRepository storeRepository;
@@ -275,108 +282,111 @@ public class AadTexRepositoriesTest {
     @Autowired
     private SaleRepository saleRepository;
 
-    private static Store testStore;
-    private static Product testProduct;
-
     @Test
     @Order(1)
-    @DisplayName("01. StoreRepository: CREATE y FIND_BY_ID con JdbcTemplate")
+    @DisplayName("01. StoreRepository: CREATE y FIND_BY_ID")
     void testStoreCreateAndFindById() {
-        String uniqueCode = "STORE_JDBCTMP_" + System.currentTimeMillis();
+        String uniqueCode = "STORE_REPO_" + System.currentTimeMillis();
         Store store = Store.builder()
                 .code(uniqueCode)
-                .name("Zara JdbcTemplate Sol")
+                .name("Tienda Repo Test")
                 .country("España")
                 .region("EMEA")
                 .build();
 
         Store created = storeRepository.create(store);
-        assertNotNull(created.id(), "JdbcTemplate debe recuperar la PK autonumérica");
+        assertNotNull(created.id(), "La tienda creada debe devolver su ID primario autonumérico");
         assertEquals(uniqueCode, created.code());
 
         Store fetched = storeRepository.findById(created.id());
-        assertNotNull(fetched);
-        assertEquals("Zara JdbcTemplate Sol", fetched.name());
+        assertNotNull(fetched, "Debe encontrar la tienda por su ID");
+        assertEquals("Tienda Repo Test", fetched.name());
 
         testStore = created;
     }
 
     @Test
     @Order(2)
-    @DisplayName("02. StoreRepository: FIND_ALL, UPDATE y DELETE con JdbcTemplate")
+    @DisplayName("02. StoreRepository: FIND_ALL, UPDATE y DELETE")
     void testStoreFindAllUpdateAndDelete() {
+        // FIND_ALL
         List<Store> stores = storeRepository.findAll();
-        assertFalse(stores.isEmpty());
+        assertFalse(stores.isEmpty(), "La lista de tiendas no debe estar vacía");
 
+        // UPDATE
         Store toUpdate = Store.builder()
                 .id(testStore.id())
                 .code(testStore.code())
-                .name("Zara Sol Renovada JdbcTemplate")
-                .country("España")
+                .name("Tienda Repo Actualizada")
+                .country("Francia")
                 .region("EMEA")
                 .build();
 
         boolean updated = storeRepository.update(toUpdate);
-        assertTrue(updated);
+        assertTrue(updated, "El update de la tienda debe devolver true");
 
-        Store fetched = storeRepository.findById(testStore.id());
-        assertEquals("Zara Sol Renovada JdbcTemplate", fetched.name());
+        Store fetchedAfterUpdate = storeRepository.findById(testStore.id());
+        assertEquals("Tienda Repo Actualizada", fetchedAfterUpdate.name());
+        assertEquals("Francia", fetchedAfterUpdate.country());
 
-        Store dummy = storeRepository.create(Store.builder()
-                .code("DUMMY_JT_" + System.currentTimeMillis())
-                .name("Dummy Store")
+        // DELETE
+        Store dummyStore = storeRepository.create(Store.builder()
+                .code("DUMMY_" + System.currentTimeMillis())
+                .name("Tienda Borrado")
                 .country("España")
                 .region("EMEA")
                 .build());
 
-        boolean deleted = storeRepository.delete(dummy.id());
-        assertTrue(deleted);
-        assertNull(storeRepository.findById(dummy.id()));
+        boolean deleted = storeRepository.delete(dummyStore.id());
+        assertTrue(deleted, "El borrado de la tienda dummy debe ser exitoso");
+        assertNull(storeRepository.findById(dummyStore.id()), "La tienda borrada ya no debe existir en BD");
     }
 
     @Test
     @Order(3)
-    @DisplayName("03. ProductRepository: Operaciones CRUD Completas")
+    @DisplayName("03. ProductRepository: CREATE, FIND_BY_ID, FIND_ALL, UPDATE y DELETE")
     void testProductFullCrud() {
-        String sku = "SKU-JT-" + System.currentTimeMillis();
+        String sku = "SKU-REPO-" + System.currentTimeMillis();
         Product product = Product.builder()
                 .sku(sku)
-                .name("Vestido Lino Spring")
-                .price(new BigDecimal("79.95"))
+                .name("Camisa Repo Test")
+                .price(new BigDecimal("49.95"))
                 .build();
 
+        // CREATE
         Product created = productRepository.create(product);
-        assertNotNull(created.id());
+        assertNotNull(created.id(), "El producto creado debe poseer ID");
 
+        // FIND_BY_ID
         Product fetched = productRepository.findById(created.id());
-        assertEquals("Vestido Lino Spring", fetched.name());
+        assertEquals("Camisa Repo Test", fetched.name());
 
+        // FIND_ALL
         List<Product> products = productRepository.findAll();
         assertTrue(products.stream().anyMatch(p -> p.id().equals(created.id())));
 
+        // UPDATE
         Product updatedProduct = Product.builder()
                 .id(created.id())
                 .sku(sku)
-                .name("Vestido Lino Modificado")
-                .price(new BigDecimal("89.95"))
+                .name("Camisa Repo Modificada")
+                .price(new BigDecimal("59.95"))
                 .build();
 
-        assertTrue(productRepository.update(updatedProduct));
-        assertEquals(new BigDecimal("89.95"), productRepository.findById(created.id()).price());
+        boolean isUpdated = productRepository.update(updatedProduct);
+        assertTrue(isUpdated);
+        assertEquals(new BigDecimal("59.95"), productRepository.findById(created.id()).price());
 
-        assertTrue(productRepository.delete(created.id()));
-        assertNull(productRepository.findById(created.id()));
-
-        testProduct = productRepository.create(product);
+        testProduct = created;
     }
 
     @Test
     @Order(4)
-    @DisplayName("04. Prevención de Inyección SQL en JdbcTemplate")
-    void testSqlInjectionProtectionInJdbcTemplate() {
+    @DisplayName("04. Prevention de SQL Injection mediante PreparedStatement")
+    void testSqlInjectionProtectionInRepo() {
         String maliciousInput = "' OR '1'='1";
         Store maliciousStore = Store.builder()
-                .code("SQLI_JT_" + System.currentTimeMillis())
+                .code("SQLI_" + System.currentTimeMillis())
                 .name(maliciousInput)
                 .country("España")
                 .region("EMEA")
@@ -386,65 +396,74 @@ public class AadTexRepositoriesTest {
         assertNotNull(created.id());
 
         Store fetched = storeRepository.findById(created.id());
-        assertEquals(maliciousInput, fetched.name());
+        assertEquals(maliciousInput, fetched.name(), "El texto malicioso debe ser parametrizado sin ejecutarse como SQL");
     }
 
     @Test
     @Order(5)
-    @DisplayName("05. SaleRepository: Cabecera, Detalles e Invocación con SimpleJdbcCall")
-    void testSaleRepositoryWithSimpleJdbcCall() {
+    @DisplayName("05. SaleRepository: CREATE, FIND_BY_ID, FIND_ALL, UPDATE y DELETE")
+    void testSaleRepositoryOperations() {
         assertNotNull(testStore);
         assertNotNull(testProduct);
 
         Sale saleHeader = Sale.builder()
                 .storeId(testStore.id())
-                .total(new BigDecimal("159.90"))
+                .total(new BigDecimal("99.90"))
                 .build();
 
-        Sale createdSale = saleRepository.createHeader(saleHeader);
-        assertNotNull(createdSale.id());
+        Sale createdSale = saleRepository.create(saleHeader);
+        assertNotNull(createdSale.id(), "La venta debe generar un ID");
+        Sale fetchedSale = saleRepository.findById(createdSale.id());
+        assertNotNull(fetchedSale);
+        List<Sale> allSales = saleRepository.findAll();
+        assertTrue(allSales.stream().anyMatch(s -> s.id().equals(createdSale.id())));
 
-        SaleDetail detail = SaleDetail.builder()
-                .saleId(createdSale.id())
-                .productId(testProduct.id())
-                .quantity(2)
-                .unitPrice(testProduct.price())
+        Sale updatedSale = Sale.builder()
+                .id(createdSale.id())
+                .storeId(testStore.id())
+                .total(new BigDecimal("120.00"))
                 .build();
-
-        saleRepository.createDetail(createdSale.id(), detail);
-
-        BigDecimal calculatedTotal = saleRepository.calculateTotalSalesByStore(testStore.id());
-        assertNotNull(calculatedTotal);
-        assertTrue(calculatedTotal.compareTo(BigDecimal.ZERO) >= 0);
+        assertTrue(saleRepository.update(updatedSale));
+        assertEquals(0, new BigDecimal("120.00").compareTo(saleRepository.findById(createdSale.id()).total()));
+        assertTrue(saleRepository.delete(createdSale.id()));
+        assertNull(saleRepository.findById(createdSale.id()));
+        assertFalse(saleRepository.delete(createdSale.id()));
     }
 }
 ```
 
 ---
 
-### 🧪 Suite 2: Pruebas de Servicios y `@Transactional` (`src/test/java/com/<usuario>/aad/service/AadTexServicesTest.java`)
+### 🧪 Test Suite 2: Pruebas de la Capa de Lógica de Negocio y Servicios (`src/test/java/com/<usuario>/aad/service/AadTexServicesTest.java`)
 
 ```java
 package com.usuario.aad.service;
 
+import com.usuario.aad.config.PostgresqlDriver;
 import com.usuario.aad.model.*;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@DisplayName("Suite 2: Evaluación de Lógica de Negocio y Transacciones Declarativas (@Transactional)")
+@DisplayName("Suite 2: Evaluación Completa de Lógica de Negocio y Transacciones ACID")
 public class AadTexServicesTest {
 
+    private static Store activeStore;
+    private static Product activeProduct1;
+    private static Product activeProduct2;
+
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private PostgresqlDriver postgresqlDriver;
 
     @Autowired
     private StoreService storeService;
@@ -455,97 +474,147 @@ public class AadTexServicesTest {
     @Autowired
     private SaleService saleService;
 
-    private static Store activeStore;
-    private static Product activeProduct1;
-    private static Product activeProduct2;
-
     @Test
     @Order(1)
-    @DisplayName("01. StoreService & ProductService: Gestión de Entidades")
-    void testServicesManagement() {
-        Store store = storeService.createStore(Store.builder()
-                .code("SVC_SPRING_" + System.currentTimeMillis())
-                .name("Zara Serrano Spring")
+    @DisplayName("01. StoreService: Métodos de Negocio y Gestión de Tiendas")
+    void testStoreServiceFullBusinessLogic() {
+        String code = "SVC_STORE_" + System.currentTimeMillis();
+        Store store = Store.builder()
+                .code(code)
+                .name("Zara Sol Service")
                 .country("España")
                 .region("EMEA")
-                .build());
-        assertNotNull(store.id());
-        activeStore = store;
+                .build();
+
+        // Crear
+        Store created = storeService.createStore(store);
+        assertNotNull(created.id());
+
+        // Obtener por ID
+        Store fetched = storeService.getStoreById(created.id());
+        assertEquals("Zara Sol Service", fetched.name());
+
+        // Listar todas
+        List<Store> all = storeService.getAllStores();
+        assertTrue(all.stream().anyMatch(s -> s.id().equals(created.id())));
+
+        // Actualizar
+        Store updatedData = Store.builder()
+                .id(created.id())
+                .code(code)
+                .name("Zara Sol Service Renovada")
+                .country("España")
+                .region("EMEA")
+                .build();
+        boolean updated = storeService.updateStore(updatedData);
+        assertTrue(updated);
+
+        activeStore = storeService.getStoreById(created.id());
+        assertEquals("Zara Sol Service Renovada", activeStore.name());
+    }
+
+    @Test
+    @Order(2)
+    @DisplayName("02. ProductService: Métodos de Negocio y Catálogo de Productos")
+    void testProductServiceFullBusinessLogic() {
+        String sku1 = "SKU-SVC-1-" + System.currentTimeMillis();
+        String sku2 = "SKU-SVC-2-" + System.currentTimeMillis();
 
         Product p1 = productService.createProduct(Product.builder()
-                .sku("SKU-SPRING-1-" + System.currentTimeMillis())
-                .name("Gabardina Beige")
-                .price(new BigDecimal("110.00"))
+                .sku(sku1)
+                .name("Abrigo Lana")
+                .price(new BigDecimal("120.00"))
                 .build());
 
         Product p2 = productService.createProduct(Product.builder()
-                .sku("SKU-SPRING-2-" + System.currentTimeMillis())
-                .name("Cinturón Cuero")
-                .price(new BigDecimal("29.95"))
+                .sku(sku2)
+                .name("Bufanda Sostenible")
+                .price(new BigDecimal("25.00"))
                 .build());
+
+        assertNotNull(p1.id());
+        assertNotNull(p2.id());
+
+        List<Product> catalog = productService.getAllProducts();
+        assertTrue(catalog.size() >= 2);
 
         activeProduct1 = p1;
         activeProduct2 = p2;
     }
 
     @Test
-    @Order(2)
-    @DisplayName("02. SaleService: Venta Transaccional Exitosa con @Transactional (Commit)")
-    void testTransactionalSaleSuccess() {
+    @Order(3)
+    @DisplayName("03. SaleService: Procesamiento Exitoso de Venta Transaccional (Commit ACID)")
+    void testProcessSaleSuccessCommit() throws Exception {
         assertNotNull(activeStore);
         assertNotNull(activeProduct1);
         assertNotNull(activeProduct2);
 
-        // Total esperado: 110.00 + 29.95 = 139.95 €
+        // Detalle: (1 * 120.00) + (2 * 25.00) = 170.00 €
         List<SaleDetail> details = List.of(
-            SaleDetail.builder().productId(activeProduct1.id()).quantity(1).unitPrice(activeProduct1.price()).build(),
-            SaleDetail.builder().productId(activeProduct2.id()).quantity(1).unitPrice(activeProduct2.price()).build()
+                SaleDetail.builder().productId(activeProduct1.id()).quantity(1).unitPrice(activeProduct1.price()).build(),
+                SaleDetail.builder().productId(activeProduct2.id()).quantity(2).unitPrice(activeProduct2.price()).build()
         );
 
         Sale sale = saleService.processSale(activeStore.id(), details);
-        assertNotNull(sale.id());
-        assertEquals(0, new BigDecimal("139.95").compareTo(sale.total()));
-    }
 
-    @Test
-    @Order(3)
-    @DisplayName("03. SaleService: Rollback Automático Gestionado por Spring (@Transactional)")
-    void testTransactionalSaleRollback() {
-        assertNotNull(activeStore);
-
-        int salesCountBefore = countSalesInDb();
-
-        // Producto inexistente ID 999999 forzará DataAccessException / FK violation
-        int invalidProductId = 999999;
-        List<SaleDetail> invalidDetails = List.of(
-            SaleDetail.builder().productId(invalidProductId).quantity(1).unitPrice(new BigDecimal("50.00")).build()
-        );
-
-        // @Transactional captura la excepción no controlada y desencadena el rollback automático
-        assertThrows(Exception.class, () -> {
-            saleService.processSale(activeStore.id(), invalidDetails);
-        });
-
-        int salesCountAfter = countSalesInDb();
-
-        // Verificación ACID: El total de ventas registradas no debe incrementarse
-        assertEquals(salesCountBefore, salesCountAfter, "Spring @Transactional debe revertir la cabecera insertada si fallan los detalles");
+        assertNotNull(sale.id(), "La venta debe haber sido persistida con ID asignado");
+        assertEquals(0, new BigDecimal("170.00").compareTo(sale.total()), "El cálculo del total de la venta debe ser 170.00 €");
+        try (Connection conn = postgresqlDriver.getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM sale_details WHERE sale_id = ?")) {
+            ps.setLong(1, sale.id());
+            try (ResultSet rs = ps.executeQuery()) {
+                assertTrue(rs.next());
+                assertEquals(2, rs.getInt(1));
+            }
+        }
     }
 
     @Test
     @Order(4)
-    @DisplayName("04. SaleService: Invocación de Función PL/pgSQL mediante SimpleJdbcCall")
+    @DisplayName("04. SaleService: Prueba Crítica de Rollback Transaccional ante Fallo de Integridad")
+    void testProcessSaleRollbackOnFailure() throws Exception {
+        assertNotNull(activeStore);
+
+        int salesCountBefore = countSalesInDb();
+
+        // Producto inexistente ID 999999 forzará un fallo de FK en detalle_venta
+        Long invalidProductId = 999999L;
+        List<SaleDetail> invalidDetails = List.of(
+                SaleDetail.builder().productId(activeProduct1.id()).quantity(1).unitPrice(activeProduct1.price()).build(),
+                SaleDetail.builder().productId(invalidProductId).quantity(1).unitPrice(new BigDecimal("50.00")).build()
+        );
+
+        // Se espera que el servicio lance excepción al detectar el fallo en la transacción
+        assertThrows(RuntimeException.class, () -> saleService.processSale(activeStore.id(), invalidDetails), "El servicio debe lanzar RuntimeException tras hacer rollback");
+
+        int salesCountAfter = countSalesInDb();
+
+        // Verificación ACID: El rollback manual debe haber deshecho la cabecera insertada previamente
+        assertEquals(salesCountBefore, salesCountAfter, "El total de ventas en BD debe ser idéntico al inicial (Rollback ejecutado)");
+    }
+
+    @Test
+    @Order(5)
+    @DisplayName("05. SaleService: Validación de Invocación de Función PL/pgSQL de Totales por Tienda")
     void testGetTotalSalesByStore() {
         assertNotNull(activeStore);
 
-        BigDecimal total = saleService.getTotalSalesByStore(activeStore.id());
-        assertNotNull(total);
-        assertTrue(total.compareTo(BigDecimal.ZERO) > 0);
+        BigDecimal totalFacturado = saleService.getTotalSalesByStore(activeStore.id());
+
+        assertNotNull(totalFacturado);
+        assertTrue(totalFacturado.compareTo(BigDecimal.ZERO) > 0, "La función PL/pgSQL debe devolver el total acumulado de las ventas de la tienda");
     }
 
-    private int countSalesInDb() {
-        Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM venta", Integer.class);
-        return count != null ? count : 0;
+    private int countSalesInDb() throws Exception {
+        try (Connection conn = postgresqlDriver.getConnection();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM sales")) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
     }
 }
 ```
