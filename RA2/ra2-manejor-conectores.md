@@ -542,7 +542,7 @@ public class StudentJdbcRepository {
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (!rs.next()) {
-                    throw new SQLException("Creating product returned no generated key");
+                    throw new SQLException("Creating studentr returned no generated key");
                 }
                 int generatedId = rs.getInt(1);
                 return new Student(generatedId, student.nif(), student.name(), student.email(), student.curse());
