@@ -538,17 +538,15 @@ public class StudentJdbcRepository {
             ps.setString(2, student.name());
             ps.setString(3, student.email());
             ps.setString(4, student.curse());
-
             ps.executeUpdate();
 
-            Student newStudent = new Student(student.nif(), student.name(), student.email(), student.curse());
             try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) {
-                    int generatedId = rs.getInt(1);
-                    newStudent.setGeneratedId(generatedId);
+                if (!keys.next()) {
+                    throw new SQLException("Creating product returned no generated key");
                 }
+                int generatedId = rs.getInt(1);
+                return new Student(generatedId, student.nif(), student.name(), student.email(), student.curse());
             }
-            return newStudent;
         } catch (SQLException e) {
             throw new RuntimeException("Error insertando alumno: " + student.nif(), e);
         }
